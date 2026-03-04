@@ -28,28 +28,28 @@ public class OrgDeptAPI implements RShortcuts {
     private final BizDeptService bizDeptService;
 
     @Operation(summary = "部门树", description = "部门树")
-    @AdminOrHasAnyAuthority({"contacts:member:query", "contacts:dept:query"})
+    @AdminOrHasAnyAuthority({"org:contacts:member:query", "contacts:dept:query"})
     @GetMapping("/tree")
     public R<?> tree() {
         return ok(bizDeptService.orgList());
     }
 
     @Operation(summary = "部门树2", description = "部门树2")
-    @AdminOrHasAnyAuthority({"contacts:member:query", "contacts:dept:query"})
+    @AdminOrHasAnyAuthority({"org:contacts:member:query", "contacts:dept:query"})
     @GetMapping("/tree2")
     public R<?> tree2() {
         return ok(bizDeptService.orgTree());
     }
 
     @Operation(summary = "基础结构部门树", description = "基础结构部门树")
-    @AdminOrHasAnyAuthority({"contacts:member:query", "contacts:dept:query"})
+    @AdminOrHasAnyAuthority({"org:contacts:member:query", "contacts:dept:query"})
     @GetMapping("/simpleTree")
     public R<?> simpleTree() {
         return ok(bizDeptService.orgSimpleTree());
     }
 
     @Operation(summary = "创建部门", description = "创建部门")
-    @AdminOrHasAnyAuthority({"contacts:dept:create"})
+    @AdminOrHasAnyAuthority({"org:contacts:dept:create"})
     @PostMapping
     public R<?> create(@Validated(Group.Create.class) @RequestBody DeptWithManagerDTO params) {
         bizDeptService.orgCreateDept(params);
@@ -57,7 +57,7 @@ public class OrgDeptAPI implements RShortcuts {
     }
 
     @Operation(summary = "更新部门", description = "更新部门")
-    @AdminOrHasAnyAuthority({"contacts:dept:update"})
+    @AdminOrHasAnyAuthority({"org:contacts:dept:update"})
     @PutMapping
     public R<?> update(@Validated(Group.Update.class) @RequestBody DeptWithManagerDTO params) {
         bizDeptService.orgUpdateDept(params);
@@ -65,7 +65,7 @@ public class OrgDeptAPI implements RShortcuts {
     }
 
     @Operation(summary = "删除部门", description = "删除部门")
-    @AdminOrHasAnyAuthority({"contacts:dept:delete"})
+    @AdminOrHasAnyAuthority({"org:contacts:dept:delete"})
     @DeleteMapping("/{id}")
     public R<?> removeById(@PathVariable Long id) {
         bizDeptService.orgDeleteDept(id);
