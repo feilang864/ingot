@@ -21,15 +21,13 @@ public class NoOpPasswordExpirationService implements PasswordExpirationService 
     }
 
     @Override
-    public void initExpiration(Long userId, int maxDays, int graceLogins) {
+    public void initExpiration(Long userId, int maxDays, int graceLoginCount, int warningDaysBefore) {
         log.debug("使用默认空实现，不初始化过期信息");
-        // 空实现，不初始化
     }
 
     @Override
-    public void updateLastChanged(Long userId, int maxDays) {
+    public void updateLastChanged(Long userId, int maxDays, int graceLoginCount, int warningDaysBefore) {
         log.debug("使用默认空实现，不更新过期时间");
-        // 空实现，不更新
     }
 
     @Override

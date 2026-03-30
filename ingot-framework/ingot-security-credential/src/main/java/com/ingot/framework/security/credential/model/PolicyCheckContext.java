@@ -20,8 +20,7 @@ public class PolicyCheckContext {
     /**
      * 校验场景
      */
-    @Builder.Default
-    private CredentialScene scene = CredentialScene.GENERAL;
+    private CredentialScene scene;
 
     /**
      * 待校验的密码（明文）

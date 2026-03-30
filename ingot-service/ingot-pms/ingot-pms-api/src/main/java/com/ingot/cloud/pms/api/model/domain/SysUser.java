@@ -7,8 +7,8 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.Version;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.ingot.framework.commons.model.enums.UserStatusEnum;
 import com.ingot.framework.commons.model.types.UserType;
 import com.ingot.framework.core.utils.sensitive.Sensitive;
 import com.ingot.framework.core.utils.sensitive.SensitiveMode;
@@ -22,7 +22,7 @@ import lombok.EqualsAndHashCode;
 
 /**
  * <p>
- *
+ * 系统用户
  * </p>
  *
  * @author magician
@@ -58,11 +58,18 @@ public class SysUser extends BaseModel<SysUser> implements UserType {
     private String password;
 
     /**
-     * 初始化密码标识
+     * 是否必须修改密码
      */
     @JsonIgnore
-    @Schema(description = "初始化密码标识")
-    private Boolean initPwd;
+    @Schema(description = "是否必须修改密码")
+    private Boolean mustChangePwd;
+
+    /**
+     * 密码最后修改时间
+     */
+    @JsonIgnore
+    @Schema(description = "密码最后修改时间")
+    private LocalDateTime passwordChangedAt;
 
     /**
      * 昵称
@@ -92,10 +99,35 @@ public class SysUser extends BaseModel<SysUser> implements UserType {
     private String avatar;
 
     /**
-     * 状态, 0:正常，9:禁用
+     * 是否启用（1-启用 0-禁用）
      */
-    @Schema(description = "状态")
-    private UserStatusEnum status;
+    @Schema(description = "是否启用")
+    private Boolean enabled;
+
+    /**
+     * 是否锁定（1-锁定 0-正常，冗余字段，详情见 account_lock_state 表）
+     */
+    @Schema(description = "是否锁定")
+    private Boolean locked;
+
+    /**
+     * 最后登录时间
+     */
+    @Schema(description = "最后登录时间")
+    private LocalDateTime lastLoginAt;
+
+    /**
+     * 最后登录IP
+     */
+    @Schema(description = "最后登录IP")
+    private String lastLoginIp;
+
+    /**
+     * 乐观锁版本号
+     */
+    @Version
+    @Schema(description = "版本号")
+    private Long version;
 
     /**
      * 创建日期

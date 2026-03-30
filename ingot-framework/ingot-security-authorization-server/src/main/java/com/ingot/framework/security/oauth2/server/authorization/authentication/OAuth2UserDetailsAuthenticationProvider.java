@@ -2,9 +2,10 @@ package com.ingot.framework.security.oauth2.server.authorization.authentication;
 
 import com.ingot.framework.commons.model.security.TokenAuthTypeEnum;
 import com.ingot.framework.security.core.InSecurityMessageSource;
+import com.ingot.framework.security.core.credential.DefaultUserCredentialChecker;
+import com.ingot.framework.security.core.credential.UserCredentialChecker;
 import com.ingot.framework.security.core.userdetails.InUser;
 import com.ingot.framework.security.core.userdetails.OAuth2UserDetailsServiceManager;
-import com.ingot.framework.security.oauth2.core.InAuthorizationGrantType;
 import com.ingot.framework.security.oauth2.core.OAuth2ErrorUtils;
 import com.ingot.framework.security.oauth2.server.authorization.client.DefaultRegisteredClientChecker;
 import com.ingot.framework.security.oauth2.server.authorization.client.RegisteredClientChecker;
@@ -60,6 +61,7 @@ public class OAuth2UserDetailsAuthenticationProvider extends AbstractUserDetails
     private UserDetailsChecker authenticationChecks = new AccountStatusUserDetailsChecker();
     private RegisteredClientChecker clientChecker = new DefaultRegisteredClientChecker();
     private GrantedAuthoritiesMapper authoritiesMapper = new NullAuthoritiesMapper();
+    private UserCredentialChecker credentialChecker = new DefaultUserCredentialChecker();
 
     public OAuth2UserDetailsAuthenticationProvider() {
         setPasswordEncoder(PasswordEncoderFactories.createDelegatingPasswordEncoder());
@@ -83,7 +85,7 @@ public class OAuth2UserDetailsAuthenticationProvider extends AbstractUserDetails
         this.clientChecker.check(registeredClient);
         UserDetails user = retrieveUser(registeredClient, unauthenticatedToken);
         this.authenticationChecks.check(user);
-        this.additionalAuthenticationChecks(user, unauthenticatedToken);
+        this.credentialChecker.check(user, unauthenticatedToken);
         return createSuccessAuthentication(user, unauthenticatedToken);
     }
 
@@ -95,8 +97,11 @@ public class OAuth2UserDetailsAuthenticationProvider extends AbstractUserDetails
     @Override
     protected void doAfterPropertiesSet() {
         Assert.notNull(this.userDetailsServiceManager, "A OAuth2UserDetailsService must be set");
-        // 强制使用 IngotSecurityMessageSource，覆盖默认的以及MessageSourceAware接口注入的MessageSource
-        setMessageSource(new InSecurityMessageSource());
+        // 强制使用 InSecurityMessageSource，覆盖默认的以及MessageSourceAware接口注入的MessageSource
+        InSecurityMessageSource messageSource = new InSecurityMessageSource();
+        setMessageSource(messageSource);
+        // 使用相同 PasswordEncoder
+        this.credentialChecker.setPasswordEncoder(this.passwordEncoder);
     }
 
     protected UserDetails retrieveUser(RegisteredClient registeredClient,
@@ -119,26 +124,6 @@ public class OAuth2UserDetailsAuthenticationProvider extends AbstractUserDetails
             if (!this.hideUserNotFoundExceptions) {
                 throw ex;
             }
-            throw new BadCredentialsException(this.messages
-                    .getMessage("AbstractUserDetailsAuthenticationProvider.badCredentials", "Bad credentials"));
-        }
-    }
-
-    protected void additionalAuthenticationChecks(UserDetails user,
-                                                  OAuth2UserDetailsAuthenticationToken token) {
-        // 只有密码模式才需要进行密码验证
-        if (token.getGrantType() != InAuthorizationGrantType.PASSWORD) {
-            return;
-        }
-
-        if (token.getCredentials() == null) {
-            log.debug("Failed to authenticate since no credentials provided");
-            throw new BadCredentialsException(this.messages
-                    .getMessage("AbstractUserDetailsAuthenticationProvider.badCredentials", "Bad credentials"));
-        }
-        String presentedPassword = token.getCredentials().toString();
-        if (!this.passwordEncoder.matches(presentedPassword, user.getPassword())) {
-            log.debug("Failed to authenticate since password does not match stored value");
             throw new BadCredentialsException(this.messages
                     .getMessage("AbstractUserDetailsAuthenticationProvider.badCredentials", "Bad credentials"));
         }
@@ -238,5 +223,18 @@ public class OAuth2UserDetailsAuthenticationProvider extends AbstractUserDetails
 
     public void setAuthoritiesMapper(GrantedAuthoritiesMapper authoritiesMapper) {
         this.authoritiesMapper = authoritiesMapper;
+    }
+
+    /**
+     * 设置凭证检查器。
+     * 注册了自定义 {@link UserCredentialChecker}
+     */
+    public void setCredentialChecker(UserCredentialChecker credentialChecker) {
+        Assert.notNull(credentialChecker, "credentialChecker cannot be null");
+        this.credentialChecker = credentialChecker;
+    }
+
+    protected UserCredentialChecker getCredentialChecker() {
+        return this.credentialChecker;
     }
 }

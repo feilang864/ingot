@@ -14,6 +14,7 @@ import com.ingot.cloud.pms.api.model.vo.user.OrgUserProfileVO;
 import com.ingot.cloud.pms.api.model.vo.user.UserPageItemWithBindRoleStatusVO;
 import com.ingot.cloud.pms.api.model.vo.user.UserProfileVO;
 import com.ingot.framework.commons.model.security.ResetPwdVO;
+import org.springframework.lang.Nullable;
 
 /**
  * <p>Description  : 业务用户service.</p>
@@ -176,4 +177,36 @@ public interface BizUserService {
      * @param params {@link UserPasswordDTO}
      */
     void fixPassword(UserPasswordDTO params);
+
+    /**
+     * 启用账号
+     *
+     * @param userId 用户ID
+     * @param reason 原因（可选）
+     */
+    void enableAccount(long userId, @Nullable String reason);
+
+    /**
+     * 禁用账号
+     *
+     * @param userId 用户ID
+     * @param reason 原因（可选）
+     */
+    void disableAccount(long userId, @Nullable String reason);
+
+    /**
+     * 手动锁定账号
+     *
+     * @param userId 用户ID
+     * @param params 锁定参数
+     */
+    void lockAccount(long userId, AccountLockDTO params);
+
+    /**
+     * 手动解锁账号
+     *
+     * @param userId 用户ID
+     * @param reason 解锁原因（可选）
+     */
+    void unlockAccount(long userId, @Nullable String reason);
 }

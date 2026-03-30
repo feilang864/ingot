@@ -73,4 +73,24 @@ public interface InOAuth2ParameterNames {
      * 用户名
      */
     String USERNAME = IGNORE_PREFIX + "ua";
+
+    /**
+     * 用户ID（内部传递，不对外暴露）
+     */
+    String USER_ID = IGNORE_PREFIX + "uid";
+
+    /**
+     * 凭证警告
+     */
+    String CREDENTIAL_WARNING = "credential_warning";
+
+    /**
+     * 凭证过期剩余时间
+     */
+    String CREDENTIAL_GRACE_REMAINING = "credential_grace_remaining";
+
+    /**
+     * 凭证过期天数
+     */
+    String CREDENTIAL_EXPIRE_IN_DAYS = "credential_expire_in_days";
 }

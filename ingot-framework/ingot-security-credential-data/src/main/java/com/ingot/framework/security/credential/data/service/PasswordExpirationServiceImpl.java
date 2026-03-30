@@ -36,7 +36,7 @@ public class PasswordExpirationServiceImpl implements PasswordExpirationService 
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void initExpiration(Long userId, int maxDays, int graceLogins) {
+    public void initExpiration(Long userId, int maxDays, int graceLoginCount, int warningDaysBefore) {
         log.info("初始化密码过期信息 - userId: {}, maxDays: {}", userId, maxDays);
 
         LocalDateTime now = LocalDateTime.now();
@@ -46,7 +46,7 @@ public class PasswordExpirationServiceImpl implements PasswordExpirationService 
         expiration.setUserId(userId);
         expiration.setLastChangedAt(now);
         expiration.setExpiresAt(expiresAt);
-        expiration.setGraceLoginRemaining(graceLogins);
+        expiration.setGraceLoginRemaining(graceLoginCount);
         expiration.setCreatedAt(now);
         expiration.setUpdatedAt(now);
 
@@ -55,7 +55,7 @@ public class PasswordExpirationServiceImpl implements PasswordExpirationService 
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void updateLastChanged(Long userId, int maxDays) {
+    public void updateLastChanged(Long userId, int maxDays, int graceLoginCount, int warningDaysBefore) {
         log.info("更新密码修改时间 - userId: {}, maxDays: {}", userId, maxDays);
 
         PasswordExpiration expiration = getByUserId(userId);
@@ -63,12 +63,13 @@ public class PasswordExpirationServiceImpl implements PasswordExpirationService 
 
         if (expiration == null) {
             // 不存在则初始化
-            initExpiration(userId, maxDays, 0);
+            initExpiration(userId, maxDays, graceLoginCount, warningDaysBefore);
         } else {
             // 更新现有记录
             expiration.setLastChangedAt(now);
             expiration.setExpiresAt(maxDays > 0 ? now.plusDays(maxDays) : null);
-            expiration.setGraceLoginRemaining(0);
+            expiration.setGraceLoginRemaining(graceLoginCount);
+            expiration.setNextWarningAt(expiration.getExpiresAt().minusDays(warningDaysBefore));
             expiration.setUpdatedAt(now);
             mapper.updateById(expiration);
         }

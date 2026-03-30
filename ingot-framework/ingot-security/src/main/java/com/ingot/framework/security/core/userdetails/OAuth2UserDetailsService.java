@@ -7,7 +7,6 @@ import java.util.Optional;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.collection.ListUtil;
 import com.ingot.framework.commons.model.common.TenantMainDTO;
-import com.ingot.framework.commons.model.enums.UserStatusEnum;
 import com.ingot.framework.commons.model.security.UserDetailsResponse;
 import com.ingot.framework.commons.model.support.R;
 import com.ingot.framework.security.core.authority.InAuthorityUtils;
@@ -56,11 +55,16 @@ public interface OAuth2UserDetailsService extends UserDetailsService {
                     authorities.addAll(AuthorityUtils.createAuthorityList(scopes.toArray(new String[0])));
                     authorities.addAll(InAuthorityUtils.createAllowTenantAuthorityList(allowTenants.toArray(new TenantMainDTO[0])));
 
-                    boolean enabled = data.getStatus() == UserStatusEnum.ENABLE;
-                    boolean nonLocked = data.getStatus() != UserStatusEnum.LOCK;
+                    // 账号状态
+                    boolean enabled = data.getEnabled();
+                    boolean nonLocked = !data.getLocked();
+                    // 凭证状态：null 视为未过期（社交登录等场景不设置此字段）
+                    boolean credentialsNonExpired = data.getCredentialsNonExpired() == null
+                            || data.getCredentialsNonExpired();
                     return InUser.userDetails(data.getId(), data.getUserType(), data.getTenant(),
                             data.getUsername(), data.getPassword(),
-                            enabled, true, true, nonLocked, authorities);
+                            enabled, true, credentialsNonExpired, nonLocked, authorities,
+                            data.getCredentialWarning(), data.getCredentialMeta());
                 })
                 .orElseThrow(() -> new UsernameNotFoundException("Username not found"));
     }

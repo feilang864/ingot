@@ -44,6 +44,15 @@ public class PasswordExpirationPolicy implements PasswordPolicy {
      */
     private int priority = 20;
 
+    /**
+     * metadata key：宽限期剩余登录次数（Integer）
+     */
+    public static final String META_GRACE_REMAINING = "graceRemaining";
+    /**
+     * metadata key：距密码过期剩余天数（Long）
+     */
+    public static final String META_DAYS_LEFT = "daysLeft";
+
     @Override
     public CredentialPolicyType getType() {
         return CredentialPolicyType.EXPIRATION;
@@ -91,7 +100,7 @@ public class PasswordExpirationPolicy implements PasswordPolicy {
                 return PasswordCheckResult.warning(
                         String.format("密码已过期，剩余%d次宽限登录机会", graceRemaining),
                         CredentialErrorCode.EXPIRED_WITH_GRACE
-                ).addMetadata("graceRemaining", graceRemaining);
+                ).addMetadata(META_GRACE_REMAINING, graceRemaining);
             } else {
                 // 宽限期已用完
                 return PasswordCheckResult.fail(
@@ -108,7 +117,7 @@ public class PasswordExpirationPolicy implements PasswordPolicy {
             return PasswordCheckResult.warning(
                     String.format("密码将在%d天后过期，请及时修改", daysLeft),
                     CredentialErrorCode.EXPIRING_SOON
-            ).addMetadata("daysLeft", daysLeft);
+            ).addMetadata(META_DAYS_LEFT, daysLeft);
         }
 
         return PasswordCheckResult.pass();

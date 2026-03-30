@@ -3,7 +3,6 @@ package com.ingot.cloud.pms.api.model.vo.user;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-import com.ingot.framework.commons.model.enums.UserStatusEnum;
 import com.ingot.framework.core.utils.sensitive.Sensitive;
 import com.ingot.framework.core.utils.sensitive.SensitiveMode;
 import com.ingot.framework.oss.common.OssUrl;
@@ -44,10 +43,17 @@ public class UserPageItemVO implements Serializable {
      */
     @OssUrl
     private String avatar;
+
     /**
-     * 状态, 0:正常，9:禁用
+     * 是否可用
      */
-    private UserStatusEnum status;
+    private Boolean enabled;
+
+    /**
+     * 是否锁定
+     */
+    private Boolean locked;
+
     /**
      * 创建日期
      */

@@ -53,6 +53,10 @@ include 'ingot-framework:ingot-security-credential'
 findProject(':ingot-framework:ingot-security-credential')?.name = 'ingot-security-credential'
 include 'ingot-framework:ingot-security-credential-data'
 findProject(':ingot-framework:ingot-security-credential-data')?.name = 'ingot-security-credential-data'
+include 'ingot-framework:ingot-account-domain:ingot-account-core'
+findProject(':ingot-framework:ingot-account-domain:ingot-account-core')?.name = 'ingot-account-core'
+include 'ingot-framework:ingot-account-domain:ingot-account-adapter'
+findProject(':ingot-framework:ingot-account-domain:ingot-account-adapter')?.name = 'ingot-account-adapter'
 
 // Cloud service
 include 'ingot-service:ingot-gateway'

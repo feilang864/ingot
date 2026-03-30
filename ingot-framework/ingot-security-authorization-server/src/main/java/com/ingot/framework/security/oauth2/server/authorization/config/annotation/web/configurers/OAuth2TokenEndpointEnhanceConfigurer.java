@@ -7,6 +7,7 @@ import com.ingot.framework.security.core.userdetails.OAuth2UserDetailsServiceMan
 import com.ingot.framework.security.oauth2.server.authorization.authentication.InOAuth2AuthorizationCodeAuthenticationProvider;
 import com.ingot.framework.security.oauth2.server.authorization.authentication.OAuth2CustomAuthenticationProvider;
 import com.ingot.framework.security.oauth2.server.authorization.authentication.OAuth2UserDetailsAuthenticationProvider;
+import com.ingot.framework.security.core.credential.UserCredentialChecker;
 import com.ingot.framework.security.oauth2.server.authorization.web.OAuth2UserDetailsAuthenticationFilter;
 import com.ingot.framework.security.web.ClientContextAwareFilter;
 import lombok.extern.slf4j.Slf4j;
@@ -58,7 +59,7 @@ public final class OAuth2TokenEndpointEnhanceConfigurer extends AbstractOAuth2Co
         authenticationProviders.forEach(authenticationProvider ->
                 httpSecurity.authenticationProvider(postProcess(authenticationProvider)));
 
-        // 使用IngotOAuth2AuthorizationCodeAuthenticationProvider替换默认OAuth2AuthorizationCodeAuthenticationProvider
+        // 使用InOAuth2AuthorizationCodeAuthenticationProvider替换默认OAuth2AuthorizationCodeAuthenticationProvider
         AuthenticationManagerBuilder builder = httpSecurity.getSharedObject(AuthenticationManagerBuilder.class);
         builder.objectPostProcessor(new ObjectPostProcessor<>() {
             @Override
@@ -108,6 +109,8 @@ public final class OAuth2TokenEndpointEnhanceConfigurer extends AbstractOAuth2Co
                 httpSecurity, UserDetailsPasswordService.class);
         UserDetailsChecker userDetailsChecker = OAuth2ConfigurerUtils.getOptionalBean(
                 httpSecurity, UserDetailsChecker.class);
+        UserCredentialChecker credentialChecker = OAuth2ConfigurerUtils.getOptionalBean(
+                httpSecurity, UserCredentialChecker.class);
         OAuth2UserDetailsServiceManager userDetailsServiceManager = OAuth2ConfigurerUtils.getBean(
                 httpSecurity, OAuth2UserDetailsServiceManager.class);
 
@@ -124,6 +127,9 @@ public final class OAuth2TokenEndpointEnhanceConfigurer extends AbstractOAuth2Co
         if (userDetailsChecker != null) {
             userDetailsAuthenticationProvider.setAuthenticationChecks(userDetailsChecker);
         }
+        if (credentialChecker != null) {
+            userDetailsAuthenticationProvider.setCredentialChecker(credentialChecker);
+        }
         authenticationProviders.add(userDetailsAuthenticationProvider);
 
         // OAuth2CustomAuthenticationProvider
@@ -132,9 +138,9 @@ public final class OAuth2TokenEndpointEnhanceConfigurer extends AbstractOAuth2Co
         authenticationProviders.add(customAuthenticationProvider);
 
         // 增强 OAuth2AuthorizationCodeAuthenticationProvider
-        InOAuth2AuthorizationCodeAuthenticationProvider ingotCodeAuthProvider =
+        InOAuth2AuthorizationCodeAuthenticationProvider authorizationCodeAuthenticationProvider =
                 new InOAuth2AuthorizationCodeAuthenticationProvider(authorizationService, tokenGenerator);
-        authenticationProviders.add(ingotCodeAuthProvider);
+        authenticationProviders.add(authorizationCodeAuthenticationProvider);
 
         return authenticationProviders;
     }

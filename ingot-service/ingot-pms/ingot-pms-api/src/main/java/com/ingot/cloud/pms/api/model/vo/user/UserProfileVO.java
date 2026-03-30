@@ -5,7 +5,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import com.ingot.cloud.pms.api.model.types.UserTenantType;
-import com.ingot.framework.commons.model.enums.UserStatusEnum;
 import com.ingot.framework.oss.common.OssUrl;
 import lombok.Data;
 
@@ -49,9 +48,14 @@ public class UserProfileVO implements Serializable {
     private String avatar;
 
     /**
-     * 状态, 0:正常，9:禁用
+     * 是否可用
      */
-    private UserStatusEnum status;
+    private Boolean enabled;
+
+    /**
+     * 是否锁定
+     */
+    private Boolean locked;
 
     /**
      * 创建日期

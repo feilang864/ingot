@@ -3,7 +3,13 @@ package com.ingot.framework.security.oauth2.server.authorization.web.authenticat
 import java.io.IOException;
 
 import cn.hutool.core.util.StrUtil;
+import com.ingot.framework.commons.constants.InOAuth2ParameterNames;
+import com.ingot.framework.commons.model.common.AuthFailureDTO;
+import com.ingot.framework.commons.model.event.LoginFailureEvent;
 import com.ingot.framework.commons.model.status.BaseErrorCode;
+import com.ingot.framework.commons.utils.DateUtil;
+import com.ingot.framework.commons.utils.WebUtil;
+import com.ingot.framework.core.context.SpringContextHolder;
 import com.ingot.framework.security.oauth2.server.authorization.http.converter.CustomOAuth2ErrorConverter;
 import com.ingot.framework.security.oauth2.server.authorization.http.converter.CustomOAuth2ErrorParametersConverter;
 import jakarta.servlet.ServletException;
@@ -17,6 +23,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.OAuth2ErrorCodes;
+import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
 import org.springframework.security.oauth2.core.http.converter.OAuth2ErrorHttpMessageConverter;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 
@@ -52,6 +59,20 @@ public class DefaultAuthenticationFailureHandler implements AuthenticationFailur
         } else {
             error = new OAuth2Error(BaseErrorCode.BAD_REQUEST.getCode(),
                     exception.getLocalizedMessage(), "");
+        }
+
+        // 密码认证失败时发布登录失败事件，供各服务异步处理失败计数和锁定逻辑
+        String username = request.getParameter(OAuth2ParameterNames.USERNAME);
+        if (StrUtil.isNotBlank(username)) {
+            AuthFailureDTO payload = new AuthFailureDTO();
+            payload.setUsername(username);
+            payload.setUserType(request.getParameter(InOAuth2ParameterNames.USER_TYPE));
+            payload.setTenantId(request.getParameter(InOAuth2ParameterNames.TENANT));
+            payload.setIp(WebUtil.getClientIP(request));
+            payload.setTime(DateUtil.now());
+            payload.setErrorCode(error.getErrorCode());
+            payload.setErrorMessage(error.getDescription());
+            SpringContextHolder.publishEvent(new LoginFailureEvent(payload));
         }
 
         ServletServerHttpResponse httpResponse = new ServletServerHttpResponse(response);

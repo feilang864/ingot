@@ -11,9 +11,12 @@
 
     <!-- 从环境变量读取配置（优先级更高） -->
     <springProperty scope="context" name="logLevel" source="logging.level.root" defaultValue="INFO"/>
-    <springProperty scope="context" name="maxFileSize" source="logging.logback.rollingpolicy.max-size" defaultValue="100MB"/>
-    <springProperty scope="context" name="maxHistory" source="logging.logback.rollingpolicy.max-history" defaultValue="30"/>
-    <springProperty scope="context" name="totalSizeCap" source="logging.logback.rollingpolicy.total-size-cap" defaultValue="20GB"/>
+    <springProperty scope="context" name="maxFileSize" source="logging.logback.rollingpolicy.max-size"
+                    defaultValue="100MB"/>
+    <springProperty scope="context" name="maxHistory" source="logging.logback.rollingpolicy.max-history"
+                    defaultValue="30"/>
+    <springProperty scope="context" name="totalSizeCap" source="logging.logback.rollingpolicy.total-size-cap"
+                    defaultValue="20GB"/>
 
     <!-- 日志文件路径 -->
     <property name="LOG_FILE" value="${logPath}/${springAppName}"/>
@@ -165,29 +168,33 @@
     <!-- Spring框架日志（级别由yml中的logging.level控制） -->
     <!-- 不在这里设置level，使用yml中的配置 -->
 
-    <!-- ==================== Root Logger ==================== -->
-    <!--
-        注意：不在这里设置level，使用yml中的logging.level.root配置
-        这样可以通过环境变量动态调整日志级别
-    -->
-    <root>
-        <appender-ref ref="CONSOLE"/>
-        <appender-ref ref="ASYNC_FILE"/>
-        <appender-ref ref="ASYNC_JSON"/>
-        <appender-ref ref="ASYNC_ERROR"/>
-    </root>
-
     <!-- ==================== 环境特定配置 ==================== -->
 
     <!-- 开发环境：输出更多日志到控制台 -->
-    <springProfile name="dev">
+    <springProfile name="dev,test">
         <logger name="com.ingot" level="DEBUG"/>
         <logger name="org.springframework.web" level="DEBUG"/>
+        <!--
+            注意：不在这里设置level，使用yml中的logging.level.root配置
+            这样可以通过环境变量动态调整日志级别
+        -->
+        <root>
+            <appender-ref ref="CONSOLE"/>
+        </root>
     </springProfile>
 
     <!-- 生产环境：减少日志输出 -->
     <springProfile name="prod">
         <!-- 生产环境的日志级别由yml中的logging.level配置控制 -->
+        <!--
+            注意：不在这里设置level，使用yml中的logging.level.root配置
+            这样可以通过环境变量动态调整日志级别
+        -->
+        <root>
+            <appender-ref ref="ASYNC_FILE"/>
+            <appender-ref ref="ASYNC_JSON"/>
+            <appender-ref ref="ASYNC_ERROR"/>
+        </root>
     </springProfile>
 
 </configuration>

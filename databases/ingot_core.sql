@@ -11,11 +11,76 @@
  Target Server Version : 80044 (8.0.44)
  File Encoding         : 65001
 
- Date: 07/02/2026 15:32:16
+ Date: 30/03/2026 14:32:17
 */
 
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
+
+-- ----------------------------
+-- Table structure for account_lock_state
+-- ----------------------------
+DROP TABLE IF EXISTS `account_lock_state`;
+CREATE TABLE `account_lock_state` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `user_id` bigint NOT NULL COMMENT '用户ID',
+  `user_type` varchar(20) NOT NULL DEFAULT '0' COMMENT '用户类型（0-系统用户 1-C端用户，同 UserTypeEnum.value）',
+  `locked` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否锁定（0-否 1-是）',
+  `lock_type` varchar(20) DEFAULT NULL COMMENT '锁定类型（MANUAL-手动 AUTO-自动）',
+  `lock_reason_code` varchar(50) DEFAULT NULL COMMENT '锁定原因代码',
+  `lock_reason_detail` varchar(500) DEFAULT NULL COMMENT '锁定原因详情',
+  `locked_at` datetime DEFAULT NULL COMMENT '锁定时间',
+  `locked_until` datetime DEFAULT NULL COMMENT '锁定到期时间（NULL=永久锁定）',
+  `operator_id` bigint DEFAULT NULL COMMENT '操作人ID',
+  `operator_name` varchar(64) DEFAULT NULL COMMENT '操作人姓名',
+  `failed_login_count` int NOT NULL DEFAULT '0' COMMENT '连续失败次数',
+  `last_failed_at` datetime DEFAULT NULL COMMENT '最后失败时间',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_user_id_type` (`user_id`,`user_type`) COMMENT '用户ID + 用户类型联合唯一',
+  KEY `idx_locked` (`locked`,`locked_until`) USING BTREE COMMENT '锁定状态和到期时间索引'
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='账号锁定状态表';
+
+-- ----------------------------
+-- Records of account_lock_state
+-- ----------------------------
+BEGIN;
+COMMIT;
+
+-- ----------------------------
+-- Table structure for account_security_event
+-- ----------------------------
+DROP TABLE IF EXISTS `account_security_event`;
+CREATE TABLE `account_security_event` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `user_id` bigint NOT NULL COMMENT '用户ID',
+  `user_type` varchar(20) NOT NULL COMMENT '用户类型（PLATFORM-平台用户 APP-应用用户）',
+  `event_type` varchar(50) NOT NULL COMMENT '事件类型',
+  `event_category` varchar(20) NOT NULL COMMENT '事件分类（AUTH-认证 ACCOUNT-账号 CREDENTIAL-凭证）',
+  `reason_code` varchar(50) DEFAULT NULL COMMENT '原因代码',
+  `reason_detail` varchar(500) DEFAULT NULL COMMENT '详细描述',
+  `result` varchar(20) DEFAULT NULL COMMENT '结果（SUCCESS-成功 FAILURE-失败）',
+  `source` varchar(50) DEFAULT NULL COMMENT '来源（AUTH-认证服务 PMS-PMS服务 MEMBER-Member服务 SYSTEM-系统）',
+  `operator_id` bigint DEFAULT NULL COMMENT '操作人ID',
+  `operator_name` varchar(64) DEFAULT NULL COMMENT '操作人姓名',
+  `client_ip` varchar(64) DEFAULT NULL COMMENT '客户端IP',
+  `user_agent` varchar(500) DEFAULT NULL COMMENT '客户端信息（User-Agent）',
+  `tenant_id` bigint DEFAULT NULL COMMENT '租户ID（来自上下文）',
+  `extra_data` json DEFAULT NULL COMMENT '扩展数据',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '事件时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_user_event` (`user_id`,`user_type`,`event_type`,`created_at`) USING BTREE COMMENT '用户事件查询索引',
+  KEY `idx_created_at` (`created_at`) USING BTREE COMMENT '时间索引',
+  KEY `idx_event_type` (`event_type`,`created_at`) USING BTREE COMMENT '事件类型索引',
+  KEY `idx_tenant` (`tenant_id`,`created_at`) USING BTREE COMMENT '租户索引'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='账号安全事件表';
+
+-- ----------------------------
+-- Records of account_security_event
+-- ----------------------------
+BEGIN;
+COMMIT;
 
 -- ----------------------------
 -- Table structure for biz_leaf_alloc
@@ -296,7 +361,7 @@ CREATE TABLE `password_expiration` (
   UNIQUE KEY `uk_user_id` (`user_id`),
   KEY `idx_expires_at` (`expires_at`),
   KEY `idx_next_warning_at` (`next_warning_at`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='密码过期信息';
+) ENGINE=InnoDB AUTO_INCREMENT=1215701794488721410 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='密码过期信息';
 
 -- ----------------------------
 -- Records of password_expiration
@@ -313,13 +378,14 @@ CREATE TABLE `password_history` (
   `user_id` bigint NOT NULL COMMENT '用户ID',
   `password_hash` varchar(255) NOT NULL COMMENT '密码哈希值',
   `sequence_number` int NOT NULL COMMENT '序号（用于环形缓冲，从1开始）',
+  `version` bigint NOT NULL DEFAULT '1' COMMENT '版本',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_user_sequence` (`user_id`,`sequence_number`),
   KEY `idx_user_id` (`user_id`),
   KEY `idx_created_at` (`created_at`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='密码历史记录（环形缓冲）';
+) ENGINE=InnoDB AUTO_INCREMENT=1215708351989424130 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='密码历史记录（环形缓冲）';
 
 -- ----------------------------
 -- Records of password_history
@@ -435,30 +501,39 @@ CREATE TABLE `sys_user` (
   `id` bigint unsigned NOT NULL COMMENT 'ID',
   `username` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL COMMENT '用户名',
   `password` varchar(300) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL COMMENT '密码',
-  `init_pwd` tinyint(1) NOT NULL DEFAULT '1' COMMENT '初始化密码标识',
+  `must_change_pwd` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否必须修改密码（0-否 1-是）',
+  `password_changed_at` datetime DEFAULT NULL COMMENT '密码最后修改时间',
   `nickname` varchar(32) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '昵称',
   `phone` varchar(32) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '手机号',
   `email` varchar(64) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '邮件地址',
   `avatar` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT '头像',
-  `status` char(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL DEFAULT '0' COMMENT '状态, 0:正常，9:禁用',
+  `enabled` tinyint(1) NOT NULL DEFAULT '1' COMMENT '是否启用（0-禁用 1-启用）',
+  `locked` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否锁定（冗余字段，详情见 account_lock_state）',
+  `last_login_at` datetime DEFAULT NULL COMMENT '最后登录时间',
+  `last_login_ip` varchar(64) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '最后登录IP',
+  `version` bigint NOT NULL DEFAULT '0' COMMENT '乐观锁版本号',
   `created_at` datetime DEFAULT NULL COMMENT '创建日期',
   `updated_at` datetime DEFAULT NULL COMMENT '更新日期',
   `deleted_at` datetime DEFAULT NULL COMMENT '删除日期',
   PRIMARY KEY (`id`) USING BTREE,
-  KEY `idx_username` (`username`) USING BTREE COMMENT '用户名',
+  UNIQUE KEY `uk_username` (`username`,(coalesce(`deleted_at`,0))) COMMENT '用户名全局唯一（软删除友好）',
   KEY `idx_phone` (`phone`) USING BTREE COMMENT '手机号',
-  KEY `idx_email` (`email`) USING BTREE COMMENT '邮箱'
+  KEY `idx_email` (`email`) USING BTREE COMMENT '邮箱',
+  KEY `idx_enabled` (`enabled`) USING BTREE COMMENT '启用状态索引',
+  KEY `idx_locked` (`locked`) USING BTREE COMMENT '锁定状态索引',
+  KEY `idx_last_login` (`last_login_at`) USING BTREE COMMENT '最后登录时间索引'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- ----------------------------
 -- Records of sys_user
 -- ----------------------------
 BEGIN;
-INSERT INTO `sys_user` (`id`, `username`, `password`, `init_pwd`, `nickname`, `phone`, `email`, `avatar`, `status`, `created_at`, `updated_at`, `deleted_at`) VALUES (1, 'admin', '{bcrypt}$2a$10$PMLmpD0dmDn2Dkc23bshJ.IG8EtcJ9CxfYCQoPgbr9qKhC2DwuohK', 0, '超级管理员', '18888888888', 'admin@ingot.com', 'ingot/user/avatar/1/logo.png', '0', '2021-01-03 11:02:46', '2025-11-25 18:28:48', NULL);
-INSERT INTO `sys_user` (`id`, `username`, `password`, `init_pwd`, `nickname`, `phone`, `email`, `avatar`, `status`, `created_at`, `updated_at`, `deleted_at`) VALUES (883383523896766465, '18603243837', '{bcrypt}$2a$10$WklERpnX/5sqH.qkEDG9Kep9RfWC6hGgD7ksZQXHtxI/R5epa4zWO', 0, '王超', '18603243837', NULL, 'ingot/user/avatar/883383523896766465/logo.png', '0', '2023-09-22 15:56:46', '2025-09-05 07:45:50', NULL);
-INSERT INTO `sys_user` (`id`, `username`, `password`, `init_pwd`, `nickname`, `phone`, `email`, `avatar`, `status`, `created_at`, `updated_at`, `deleted_at`) VALUES (968109737946447873, '11111111111', '{bcrypt}$2a$10$2Lu9D4.M/dTzoXFgbNh5cOMfQI.zCNY6sHym8ZnuYvs3R6oOv/Udu', 0, '测试用户', '11111111111', NULL, 'ingot/user/avatar/968109737946447873/logo.png', '0', '2024-05-13 11:08:29', '2025-11-26 14:18:11', NULL);
-INSERT INTO `sys_user` (`id`, `username`, `password`, `init_pwd`, `nickname`, `phone`, `email`, `avatar`, `status`, `created_at`, `updated_at`, `deleted_at`) VALUES (1009463137401110530, '12312312312', '{bcrypt}$2a$10$dWq5aNMSQJM2BP4bYPaCZuNK0APKrb0G3z8WVlMrUd3zfwc9pxpHO', 1, '1231233', '12312312312', NULL, 'ingot/user/avatar/1009463137401110530/ic_logo.png', '0', '2024-09-04 13:52:08', '2025-11-26 10:47:16', NULL);
-INSERT INTO `sys_user` (`id`, `username`, `password`, `init_pwd`, `nickname`, `phone`, `email`, `avatar`, `status`, `created_at`, `updated_at`, `deleted_at`) VALUES (1095389297838202881, '18603243838', '{bcrypt}$2a$10$9wod3QviKn2YYzslhjeQhew98DoV4qfMb6HipqOPyMyCQQwk5XsBK', 1, '测试1人员', '18603243838', NULL, 'ingot/user/avatar/1095389297838202881/jiujiuqiuzhi.jpg', '0', '2025-04-29 16:32:01', '2026-01-12 17:41:57', NULL);
+INSERT INTO `sys_user` (`id`, `username`, `password`, `must_change_pwd`, `password_changed_at`, `nickname`, `phone`, `email`, `avatar`, `enabled`, `locked`, `last_login_at`, `last_login_ip`, `version`, `created_at`, `updated_at`, `deleted_at`) VALUES (1, 'admin', '{bcrypt}$2a$10$frVeEWrN5PRLZTheYoMw1uHNiylDcS3uvByYiYACJIvCkAMaoEfr2', 0, '2026-03-10 16:40:30', '超级管理员', '18888888888', 'admin@ingot.com', 'ingot/user/avatar/1/logo.png', 1, 0, '2026-03-27 16:32:04', '192.168.1.133', 0, '2021-01-03 11:02:46', '2026-02-11 14:12:44', NULL);
+INSERT INTO `sys_user` (`id`, `username`, `password`, `must_change_pwd`, `password_changed_at`, `nickname`, `phone`, `email`, `avatar`, `enabled`, `locked`, `last_login_at`, `last_login_ip`, `version`, `created_at`, `updated_at`, `deleted_at`) VALUES (883383523896766465, '18603243837', '{bcrypt}$2a$10$WklERpnX/5sqH.qkEDG9Kep9RfWC6hGgD7ksZQXHtxI/R5epa4zWO', 0, '2025-09-05 07:45:50', '王超', '18603243837', NULL, 'ingot/user/avatar/883383523896766465/logo.png', 1, 0, '2026-03-27 16:08:07', '192.168.1.133', 0, '2023-09-22 15:56:46', '2025-09-05 07:45:50', NULL);
+INSERT INTO `sys_user` (`id`, `username`, `password`, `must_change_pwd`, `password_changed_at`, `nickname`, `phone`, `email`, `avatar`, `enabled`, `locked`, `last_login_at`, `last_login_ip`, `version`, `created_at`, `updated_at`, `deleted_at`) VALUES (968109737946447873, '11111111111', '{bcrypt}$2a$10$uRgJPZ7s0nP1EEqnpDUXR.DHFUSQuiGD6tAsxd2JMQTIl5wbaD0EW', 1, '2026-03-27 16:07:21', '测试用户', '11111111111', NULL, 'ingot/user/avatar/968109737946447873/logo.png', 1, 0, '2026-03-27 16:07:36', '192.168.1.133', 0, '2024-05-13 11:08:29', '2025-11-26 14:18:11', NULL);
+INSERT INTO `sys_user` (`id`, `username`, `password`, `must_change_pwd`, `password_changed_at`, `nickname`, `phone`, `email`, `avatar`, `enabled`, `locked`, `last_login_at`, `last_login_ip`, `version`, `created_at`, `updated_at`, `deleted_at`) VALUES (1009463137401110530, '12312312312', '{bcrypt}$2a$10$.0Kvau6alsADXfw6ikV2bOij.59ArljWr3viZPLm.G2FqzcY1ZAT2', 1, '2026-03-10 16:43:14', '1231233', '12312312312', NULL, 'ingot/user/avatar/1009463137401110530/ic_logo.png', 1, 0, NULL, NULL, 0, '2024-09-04 13:52:08', '2025-11-26 10:47:16', NULL);
+INSERT INTO `sys_user` (`id`, `username`, `password`, `must_change_pwd`, `password_changed_at`, `nickname`, `phone`, `email`, `avatar`, `enabled`, `locked`, `last_login_at`, `last_login_ip`, `version`, `created_at`, `updated_at`, `deleted_at`) VALUES (1095389297838202881, '18603243838', '{bcrypt}$2a$10$9wod3QviKn2YYzslhjeQhew98DoV4qfMb6HipqOPyMyCQQwk5XsBK', 1, '2026-01-12 17:41:57', '测试1人员', '18603243838', NULL, 'ingot/user/avatar/1095389297838202881/jiujiuqiuzhi.jpg', 1, 0, NULL, NULL, 0, '2025-04-29 16:32:01', '2026-01-12 17:41:57', NULL);
+INSERT INTO `sys_user` (`id`, `username`, `password`, `must_change_pwd`, `password_changed_at`, `nickname`, `phone`, `email`, `avatar`, `enabled`, `locked`, `last_login_at`, `last_login_ip`, `version`, `created_at`, `updated_at`, `deleted_at`) VALUES (1215700742884433922, '123123', '{bcrypt}$2a$10$DH4T5ErTeN6gYHukqGZ2vO1SfTo6NxTetOOTYjoZ40LZK5Dx/bg3C', 0, '2026-03-27 16:56:59', '测试人员', '123123', NULL, NULL, 1, 0, '2026-03-27 17:35:45', '192.168.1.133', 0, '2026-03-27 16:26:45', NULL, NULL);
 COMMIT;
 
 -- ----------------------------
@@ -507,6 +582,7 @@ INSERT INTO `sys_user_tenant` (`id`, `user_id`, `tenant_id`, `main`, `name`, `av
 INSERT INTO `sys_user_tenant` (`id`, `user_id`, `tenant_id`, `main`, `name`, `avatar`, `created_at`) VALUES (1171517865699307521, 883383523896766465, 1, b'1', '英格特云', 'http://ingot-cloud:9090/ingot/public/tenant/logo.png?t=1710140674513', '2025-11-25 18:19:46');
 INSERT INTO `sys_user_tenant` (`id`, `user_id`, `tenant_id`, `main`, `name`, `avatar`, `created_at`) VALUES (1171766486688591873, 883383523896766465, 1171766486562762754, b'0', '测试组织', 'ingot/user/avatar/ic_logo.png', '2025-11-26 10:47:42');
 INSERT INTO `sys_user_tenant` (`id`, `user_id`, `tenant_id`, `main`, `name`, `avatar`, `created_at`) VALUES (1171818507911294978, 968109737946447873, 1171766486562762754, b'1', '测试组织', 'ingot/user/avatar/ic_logo.png', '2025-11-26 14:14:25');
+INSERT INTO `sys_user_tenant` (`id`, `user_id`, `tenant_id`, `main`, `name`, `avatar`, `created_at`) VALUES (1215700742989291521, 1215700742884433922, 1, b'1', '英格特云', 'http://ingot-cloud:9090/ingot/public/tenant/logo.png?t=1710140674513', '2026-03-27 16:26:45');
 COMMIT;
 
 -- ----------------------------
@@ -553,7 +629,7 @@ CREATE TABLE `tenant_dept` (
 -- ----------------------------
 BEGIN;
 INSERT INTO `tenant_dept` (`id`, `tenant_id`, `pid`, `name`, `sort`, `main_flag`, `status`, `created_at`, `updated_at`, `deleted_at`) VALUES (1, 1, 0, '英格特云', 0, b'1', '1', '2025-11-24 16:36:06', '2025-11-24 16:36:08', NULL);
-INSERT INTO `tenant_dept` (`id`, `tenant_id`, `pid`, `name`, `sort`, `main_flag`, `status`, `created_at`, `updated_at`, `deleted_at`) VALUES (1171517787697836033, 1, 1, '测试部门', 999, b'0', '0', '2025-11-25 18:19:27', '2025-12-23 09:33:41', NULL);
+INSERT INTO `tenant_dept` (`id`, `tenant_id`, `pid`, `name`, `sort`, `main_flag`, `status`, `created_at`, `updated_at`, `deleted_at`) VALUES (1171517787697836033, 1, 1, '测试部门', 999, b'0', '0', '2025-11-25 18:19:27', '2026-03-27 16:19:54', NULL);
 INSERT INTO `tenant_dept` (`id`, `tenant_id`, `pid`, `name`, `sort`, `main_flag`, `status`, `created_at`, `updated_at`, `deleted_at`) VALUES (1171520634774614018, 1, 1171517787697836033, '测试小组', 999, b'0', '0', '2025-11-25 18:30:46', NULL, NULL);
 INSERT INTO `tenant_dept` (`id`, `tenant_id`, `pid`, `name`, `sort`, `main_flag`, `status`, `created_at`, `updated_at`, `deleted_at`) VALUES (1171766486592122882, 1171766486562762754, 0, '测试组织', 0, b'1', '0', '2025-11-26 10:47:42', NULL, NULL);
 COMMIT;
@@ -636,7 +712,8 @@ INSERT INTO `tenant_role_user_private` (`id`, `tenant_id`, `role_id`, `meta_role
 INSERT INTO `tenant_role_user_private` (`id`, `tenant_id`, `role_id`, `meta_role`, `user_id`, `dept_id`) VALUES (1172813477321371650, 1, 1, b'1', 1, NULL);
 INSERT INTO `tenant_role_user_private` (`id`, `tenant_id`, `role_id`, `meta_role`, `user_id`, `dept_id`) VALUES (1172813477325565954, 1, 2, b'1', 1, NULL);
 INSERT INTO `tenant_role_user_private` (`id`, `tenant_id`, `role_id`, `meta_role`, `user_id`, `dept_id`) VALUES (1181257390797959170, 1, 3, b'1', 883383523896766465, NULL);
-INSERT INTO `tenant_role_user_private` (`id`, `tenant_id`, `role_id`, `meta_role`, `user_id`, `dept_id`) VALUES (1181532332944863234, 1, 1075807902184353794, b'1', 883383523896766465, 1171517787697836033);
+INSERT INTO `tenant_role_user_private` (`id`, `tenant_id`, `role_id`, `meta_role`, `user_id`, `dept_id`) VALUES (1215699020527050753, 1, 1075807902184353794, b'1', 883383523896766465, 1171517787697836033);
+INSERT INTO `tenant_role_user_private` (`id`, `tenant_id`, `role_id`, `meta_role`, `user_id`, `dept_id`) VALUES (1215700841081479170, 1, 2, b'1', 1215700742884433922, NULL);
 COMMIT;
 
 -- ----------------------------
@@ -657,7 +734,7 @@ CREATE TABLE `tenant_user_dept_private` (
 -- Records of tenant_user_dept_private
 -- ----------------------------
 BEGIN;
-INSERT INTO `tenant_user_dept_private` (`id`, `tenant_id`, `user_id`, `dept_id`) VALUES (1171818619999875074, 1, 883383523896766465, 1171520634774614018);
+INSERT INTO `tenant_user_dept_private` (`id`, `tenant_id`, `user_id`, `dept_id`) VALUES (1215696710417653761, 1, 883383523896766465, 1171520634774614018);
 COMMIT;
 
 SET FOREIGN_KEY_CHECKS = 1;

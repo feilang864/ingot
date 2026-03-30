@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.ingot.cloud.pms.api.model.domain.SysUser;
 import com.ingot.cloud.pms.api.model.dto.user.AllOrgUserFilterDTO;
-import com.ingot.cloud.pms.api.model.dto.user.UserPasswordDTO;
 import com.ingot.cloud.pms.api.model.dto.user.UserQueryDTO;
 import com.ingot.cloud.pms.api.model.vo.user.UserPageItemVO;
 import com.ingot.framework.data.mybatis.common.service.BaseService;
@@ -69,20 +68,4 @@ public interface SysUserService extends BaseService<SysUser> {
      */
     void delete(long id);
 
-    /**
-     * 用户修改密码
-     *
-     * @param id     用户ID
-     * @param params 参数
-     */
-    void fixPassword(long id, UserPasswordDTO params);
-
-    /**
-     * 更新密码，所有涉及到更新密码的逻辑均调用该方法，保证密码更新逻辑的一致性
-     *
-     * @param id       用户ID
-     * @param password 新密码
-     * @param initFlag 是否为新的初始化密码
-     */
-    void updatePassword(long id, String password, boolean initFlag);
 }

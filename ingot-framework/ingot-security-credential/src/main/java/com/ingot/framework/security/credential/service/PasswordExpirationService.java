@@ -24,17 +24,20 @@ public interface PasswordExpirationService {
      *
      * @param userId      用户ID
      * @param maxDays     密码有效天数
-     * @param graceLogins 宽限登录次数
+     * @param graceLoginCount 宽限期登录次数
+     * @param warningDaysBefore 提前N天提醒
      */
-    void initExpiration(Long userId, int maxDays, int graceLogins);
+    void initExpiration(Long userId, int maxDays, int graceLoginCount, int warningDaysBefore);
 
     /**
      * 更新密码修改时间（重置过期时间）
      *
      * @param userId  用户ID
      * @param maxDays 密码有效天数
+     * @param graceLoginCount 宽限期登录次数
+     * @param warningDaysBefore 提前N天提醒
      */
-    void updateLastChanged(Long userId, int maxDays);
+    void updateLastChanged(Long userId, int maxDays, int graceLoginCount, int warningDaysBefore);
 
     /**
      * 减少宽限登录次数

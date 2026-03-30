@@ -8,7 +8,7 @@ import java.util.Optional;
 import cn.hutool.core.util.StrUtil;
 import com.ingot.framework.commons.constants.InOAuth2ParameterNames;
 import com.ingot.framework.commons.model.common.AuthSuccessDTO;
-import com.ingot.framework.commons.model.event.LoginEvent;
+import com.ingot.framework.commons.model.event.LoginSuccessEvent;
 import com.ingot.framework.commons.utils.CookieUtil;
 import com.ingot.framework.commons.utils.DateUtil;
 import com.ingot.framework.commons.utils.WebUtil;
@@ -95,6 +95,10 @@ public class AccessTokenAuthenticationSuccessHandler implements AuthenticationSu
 
         String username = OAuth2Util.getLoginUsername(additionalParameters);
         String org = OAuth2Util.getLoginOrg(additionalParameters);
+        String userType = (String) additionalParameters.get(InOAuth2ParameterNames.USER_TYPE);
+        Long userId = Optional.ofNullable(additionalParameters.get(InOAuth2ParameterNames.USER_ID))
+                .map(v -> v instanceof Long ? (Long) v : Long.parseLong(v.toString()))
+                .orElse(null);
 
         String grantType = request.getParameter(OAuth2ParameterNames.GRANT_TYPE);
 
@@ -104,7 +108,9 @@ public class AccessTokenAuthenticationSuccessHandler implements AuthenticationSu
         payload.setUsername(username);
         payload.setOrg(org);
         payload.setTime(DateUtil.now());
-        SpringContextHolder.publishEvent(new LoginEvent(payload));
+        payload.setUserId(userId);
+        payload.setUserType(userType);
+        SpringContextHolder.publishEvent(new LoginSuccessEvent(payload));
     }
 
 

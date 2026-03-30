@@ -50,4 +50,14 @@ public class CredentialValidateRequest {
      * 用户类型（可选）
      */
     private UserTypeEnum userType;
+
+    /**
+     * 是否单独处理错误
+     */
+    private boolean manualProcessError;
+
+    /**
+     * 是否自动处理更新密码相关逻辑（密码过期，密码历史）
+     */
+    private boolean autoProcessUpdatePasswordLogic;
 }

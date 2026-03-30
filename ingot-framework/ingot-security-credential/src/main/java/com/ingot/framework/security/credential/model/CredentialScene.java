@@ -35,13 +35,7 @@ public enum CredentialScene {
      * 重置密码
      * <p>预留该状态，目前重置密码为管理员操作，会自动生成随机密码然后用户登录强制修改，所以不用走密码策略</p>
      */
-    RESET_PASSWORD("重置密码", "RESET_PASSWORD"),
-
-    /**
-     * 通用校验
-     * <p>目前通用校验不校验任何策略</p>
-     */
-    GENERAL("通用", "GENERAL");
+    RESET_PASSWORD("重置密码", "RESET_PASSWORD");
 
     /**
      * 场景名称

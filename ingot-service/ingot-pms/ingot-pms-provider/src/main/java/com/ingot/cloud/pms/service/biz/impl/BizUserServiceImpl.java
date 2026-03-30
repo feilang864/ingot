@@ -30,7 +30,6 @@ import com.ingot.cloud.pms.service.biz.BizUserService;
 import com.ingot.cloud.pms.service.biz.UserOpsChecker;
 import com.ingot.cloud.pms.service.domain.*;
 import com.ingot.framework.commons.constants.RoleConstants;
-import com.ingot.framework.commons.model.enums.UserStatusEnum;
 import com.ingot.framework.commons.model.security.ResetPwdVO;
 import com.ingot.framework.commons.utils.DateUtil;
 import com.ingot.framework.core.utils.validation.AssertionChecker;
@@ -40,7 +39,16 @@ import com.ingot.framework.tenant.TenantContextHolder;
 import com.ingot.framework.tenant.TenantEnv;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import com.ingot.cloud.pms.api.model.dto.user.AccountLockDTO;
+import com.ingot.framework.account.domain.model.enums.EventSource;
+import com.ingot.framework.account.domain.model.enums.LockReason;
+import com.ingot.framework.account.domain.port.inbound.ChangePasswordUseCase;
+import com.ingot.framework.account.domain.port.inbound.LockAccountUseCase;
+import com.ingot.framework.account.domain.port.inbound.ManageAccountStatusUseCase;
+import com.ingot.framework.account.domain.port.inbound.UnlockAccountUseCase;
+import com.ingot.framework.commons.model.security.UserTypeEnum;
+import com.ingot.framework.security.core.userdetails.InUser;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -66,7 +74,10 @@ public class BizUserServiceImpl implements BizUserService {
     private final BizRoleService bizRoleService;
     private final BizDeptService bizDeptService;
 
-    private final PasswordEncoder passwordEncoder;
+    private final ChangePasswordUseCase changePasswordUseCase;
+    private final ManageAccountStatusUseCase manageAccountStatusUseCase;
+    private final LockAccountUseCase lockAccountUseCase;
+    private final UnlockAccountUseCase unlockAccountUseCase;
     private final AssertionChecker assertionChecker;
     private final UserOpsChecker userOpsChecker;
     private final UserConvert userConvert;
@@ -192,9 +203,8 @@ public class BizUserServiceImpl implements BizUserService {
         } else {
             user.setUsername(params.getPhone());
         }
-        user.setInitPwd(Boolean.TRUE);
+        user.setMustChangePwd(Boolean.TRUE);
         user.setPassword(initPwd);
-        user.setStatus(UserStatusEnum.ENABLE);
         sysUserService.create(user);
 
         ResetPwdVO result = new ResetPwdVO();
@@ -205,10 +215,6 @@ public class BizUserServiceImpl implements BizUserService {
 
     @Override
     public void updateUser(UserDTO params) {
-        if (params.getStatus() == UserStatusEnum.LOCK) {
-            userOpsChecker.disableUser(params.getId());
-        }
-
         SysUser user = userConvert.to(params);
         sysUserService.update(user);
     }
@@ -237,17 +243,20 @@ public class BizUserServiceImpl implements BizUserService {
 
     @Override
     public ResetPwdVO resetPwd(long userId) {
-        SysUser user = sysUserService.getById(userId);
-        assertionChecker.checkOperation(user != null,
-                "SysUserServiceImpl.UserNonExist");
-        assert user != null;
+        InUser operator = SecurityAuthContext.getUser();
+        String randomPwd = RandomUtil.randomString(6);
 
-        // 重置密码
-        String initPwd = RandomUtil.randomString(6);
-        sysUserService.updatePassword(userId, initPwd, true);
+        changePasswordUseCase.resetPassword(ChangePasswordUseCase.ResetPasswordCommand.builder()
+                .userId(userId)
+                .userType(UserTypeEnum.ADMIN)
+                .newPassword(randomPwd)
+                .operatorId(operator.getId())
+                .operatorName(operator.getUsername())
+                .source(EventSource.PMS)
+                .build());
 
         ResetPwdVO result = new ResetPwdVO();
-        result.setRandom(initPwd);
+        result.setRandom(randomPwd);
         return result;
     }
 
@@ -339,7 +348,7 @@ public class BizUserServiceImpl implements BizUserService {
             user = userConvert.to(params);
             user.setUsername(params.getPhone());
             user.setPassword(params.getPhone());
-            user.setInitPwd(Boolean.TRUE);
+            user.setMustChangePwd(Boolean.TRUE);
             sysUserService.create(user);
         }
 
@@ -393,16 +402,85 @@ public class BizUserServiceImpl implements BizUserService {
         assertionChecker.checkOperation(current != null,
                 "SysUserServiceImpl.UserNonExist");
         assert current != null;
-        if (!BooleanUtil.isTrue(current.getInitPwd())) {
+        if (!BooleanUtil.isTrue(current.getMustChangePwd())) {
             return;
         }
 
-        // 更新密码
-        sysUserService.updatePassword(id, params.getNewPassword(), false);
+        changePasswordUseCase.changePassword(ChangePasswordUseCase.ChangePasswordCommand.builder()
+                .userId(id)
+                .userType(UserTypeEnum.ADMIN)
+                .oldPassword(params.getPassword())
+                .newPassword(params.getNewPassword())
+                .confirmPassword(params.getNewPassword())
+                .build());
     }
 
     @Override
     public void fixPassword(UserPasswordDTO params) {
-        sysUserService.fixPassword(SecurityAuthContext.getUser().getId(), params);
+        long id = SecurityAuthContext.getUser().getId();
+        changePasswordUseCase.changePassword(ChangePasswordUseCase.ChangePasswordCommand.builder()
+                .userId(id)
+                .userType(UserTypeEnum.ADMIN)
+                .oldPassword(params.getPassword())
+                .newPassword(params.getNewPassword())
+                .confirmPassword(params.getNewPassword())
+                .build());
+    }
+
+    @Override
+    public void enableAccount(long userId, @Nullable String reason) {
+        InUser operator = SecurityAuthContext.getUser();
+        manageAccountStatusUseCase.enableAccount(ManageAccountStatusUseCase.StatusCommand.builder()
+                .userId(userId)
+                .userType(UserTypeEnum.ADMIN)
+                .targetStatus(Boolean.TRUE)
+                .reason(reason)
+                .operatorId(operator.getId())
+                .operatorName(operator.getUsername())
+                .source(EventSource.PMS)
+                .build());
+    }
+
+    @Override
+    public void disableAccount(long userId, @Nullable String reason) {
+        userOpsChecker.disableUser(userId);
+        InUser operator = SecurityAuthContext.getUser();
+        manageAccountStatusUseCase.disableAccount(ManageAccountStatusUseCase.StatusCommand.builder()
+                .userId(userId)
+                .userType(UserTypeEnum.ADMIN)
+                .targetStatus(Boolean.FALSE)
+                .reason(reason)
+                .operatorId(operator.getId())
+                .operatorName(operator.getUsername())
+                .source(EventSource.PMS)
+                .build());
+    }
+
+    @Override
+    public void lockAccount(long userId, AccountLockDTO params) {
+        InUser operator = SecurityAuthContext.getUser();
+        lockAccountUseCase.lockManually(LockAccountUseCase.LockCommand.builder()
+                .userId(userId)
+                .userType(UserTypeEnum.ADMIN)
+                .reason(LockReason.MANUAL_LOCK)
+                .reasonDetail(params.getReasonDetail())
+                .lockedUntil(params.getLockedUntil())
+                .operatorId(operator.getId())
+                .operatorName(operator.getUsername())
+                .source(EventSource.PMS)
+                .build());
+    }
+
+    @Override
+    public void unlockAccount(long userId, @Nullable String reason) {
+        InUser operator = SecurityAuthContext.getUser();
+        unlockAccountUseCase.unlockManually(UnlockAccountUseCase.UnlockCommand.builder()
+                .userId(userId)
+                .userType(UserTypeEnum.ADMIN)
+                .reason(reason)
+                .operatorId(operator.getId())
+                .operatorName(operator.getUsername())
+                .source(EventSource.PMS)
+                .build());
     }
 }

@@ -1,31 +1,23 @@
 package com.ingot.cloud.pms.service.domain.impl;
 
-import java.time.LocalDateTime;
-
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.ingot.cloud.pms.api.model.domain.SysUser;
 import com.ingot.cloud.pms.api.model.dto.user.AllOrgUserFilterDTO;
-import com.ingot.cloud.pms.api.model.dto.user.UserPasswordDTO;
 import com.ingot.cloud.pms.api.model.dto.user.UserQueryDTO;
 import com.ingot.cloud.pms.api.model.status.PmsErrorCode;
 import com.ingot.cloud.pms.api.model.vo.user.UserPageItemVO;
 import com.ingot.cloud.pms.mapper.SysUserMapper;
 import com.ingot.cloud.pms.service.domain.SysUserService;
-import com.ingot.framework.commons.model.enums.UserStatusEnum;
 import com.ingot.framework.commons.utils.DateUtil;
 import com.ingot.framework.core.utils.validation.AssertionChecker;
 import com.ingot.framework.data.mybatis.common.service.BaseServiceImpl;
-import com.ingot.framework.security.credential.model.CredentialScene;
-import com.ingot.framework.security.credential.model.request.CredentialValidateRequest;
-import com.ingot.framework.security.credential.service.CredentialSecurityService;
 import com.ingot.framework.tenant.TenantEnv;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * <p>
@@ -38,7 +30,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class SysUserServiceImpl extends BaseServiceImpl<SysUserMapper, SysUser> implements SysUserService {
-    private final CredentialSecurityService credentialSecurityService;
     private final PasswordEncoder passwordEncoder;
     private final AssertionChecker assertionChecker;
 
@@ -65,11 +56,12 @@ public class SysUserServiceImpl extends BaseServiceImpl<SysUserMapper, SysUser> 
 
     @Override
     public void create(SysUser user) {
-        user.setInitPwd(Boolean.TRUE);
+        user.setMustChangePwd(Boolean.TRUE);
+        user.setPasswordChangedAt(DateUtil.now());
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setCreatedAt(DateUtil.now());
-        if (user.getStatus() == null) {
-            user.setStatus(UserStatusEnum.ENABLE);
+        if (user.getEnabled() == null) {
+            user.setEnabled(Boolean.TRUE);
         }
 
         checkUserUniqueField(user, null);
@@ -120,40 +112,4 @@ public class SysUserServiceImpl extends BaseServiceImpl<SysUserMapper, SysUser> 
                     "SysUserServiceImpl.EmailExist");
         }
     }
-
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public void fixPassword(long id, UserPasswordDTO params) {
-        assertionChecker.checkOperation(StrUtil.isNotEmpty(params.getPassword())
-                        && StrUtil.isNotEmpty(params.getNewPassword()),
-                "SysUserServiceImpl.IncorrectPassword");
-
-        SysUser current = getById(id);
-        assertionChecker.checkOperation(current != null,
-                "SysUserServiceImpl.UserNonExist");
-        assert current != null;
-
-        assertionChecker.checkOperation(passwordEncoder.matches(params.getPassword(), current.getPassword()),
-                "SysUserServiceImpl.IncorrectPassword");
-
-        updatePassword(id, params.getNewPassword(), false);
-    }
-
-    @Override
-    public void updatePassword(long id, String password, boolean initFlag) {
-        credentialSecurityService.validate(CredentialValidateRequest.builder()
-                .scene(CredentialScene.CHANGE_PASSWORD)
-                .userId(id)
-                .password(password)
-                .build());
-
-        SysUser user = new SysUser();
-        user.setId(id);
-        user.setPassword(passwordEncoder.encode(password));
-        user.setInitPwd(initFlag);
-        user.setUpdatedAt(LocalDateTime.now());
-        assertionChecker.checkOperation(updateById(user),
-                "SysUserServiceImpl.UpdatePasswordFailed");
-    }
-
 }

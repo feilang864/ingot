@@ -88,7 +88,7 @@ public class TenantEngine {
             SysUser user = sysUserService.getOne(Wrappers.<SysUser>lambdaQuery().eq(SysUser::getPhone, params.getPhone()));
             if (user == null) {
                 user = new SysUser();
-                user.setInitPwd(Boolean.TRUE);
+                user.setMustChangePwd(Boolean.TRUE);
                 user.setUsername(params.getPhone());
                 user.setPhone(params.getPhone());
                 user.setPassword(params.getPhone());

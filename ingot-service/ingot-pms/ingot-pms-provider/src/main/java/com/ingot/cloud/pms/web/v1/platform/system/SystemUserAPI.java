@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.ingot.cloud.pms.api.model.domain.SysUser;
 import com.ingot.cloud.pms.api.model.dto.biz.UserOrgEditDTO;
+import com.ingot.cloud.pms.api.model.dto.user.AccountLockDTO;
 import com.ingot.cloud.pms.api.model.dto.user.AllOrgUserFilterDTO;
 import com.ingot.cloud.pms.api.model.dto.user.UserBaseInfoDTO;
 import com.ingot.cloud.pms.api.model.dto.user.UserDTO;
@@ -132,6 +133,42 @@ public class SystemUserAPI implements RShortcuts {
     public R<?> updateUserBaseInfo(@RequestBody UserBaseInfoDTO params) {
         long userId = SecurityAuthContext.getUser().getId();
         bizUserService.updateUserBaseInfo(userId, params);
+        return ok();
+    }
+
+    @AdminOrHasAnyAuthority({"platform:system:user:update"})
+    @PutMapping("/{userId}/enable")
+    @Operation(summary = "启用账号", description = "启用指定用户账号")
+    public R<?> enableAccount(@PathVariable Long userId,
+                              @RequestParam(required = false) String reason) {
+        bizUserService.enableAccount(userId, reason);
+        return ok();
+    }
+
+    @AdminOrHasAnyAuthority({"platform:system:user:update"})
+    @PutMapping("/{userId}/disable")
+    @Operation(summary = "禁用账号", description = "禁用指定用户账号")
+    public R<?> disableAccount(@PathVariable Long userId,
+                               @RequestParam(required = false) String reason) {
+        bizUserService.disableAccount(userId, reason);
+        return ok();
+    }
+
+    @AdminOrHasAnyAuthority({"platform:system:user:lock"})
+    @PutMapping("/{userId}/lock")
+    @Operation(summary = "锁定账号", description = "手动锁定指定用户账号，可指定锁定原因和到期时间")
+    public R<?> lockAccount(@PathVariable Long userId,
+                            @RequestBody AccountLockDTO params) {
+        bizUserService.lockAccount(userId, params);
+        return ok();
+    }
+
+    @AdminOrHasAnyAuthority({"platform:system:user:lock"})
+    @PutMapping("/{userId}/unlock")
+    @Operation(summary = "解锁账号", description = "手动解锁指定用户账号")
+    public R<?> unlockAccount(@PathVariable Long userId,
+                              @RequestBody AccountLockDTO params) {
+        bizUserService.unlockAccount(userId, params.getReasonDetail());
         return ok();
     }
 }

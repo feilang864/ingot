@@ -59,16 +59,16 @@ public class DefaultCredentialSecurityService implements CredentialSecurityServi
 
         log.debug("凭证校验完成 - 场景: {}, 结果: {}", request.getScene(), result.isPassed());
 
-        // 注册和修改密码，如果校验通过，都需要保存历史密码，更新密码过期信息
-        if (result.isPassed()
-                && (request.getScene() == CredentialScene.CHANGE_PASSWORD
-                || request.getScene() == CredentialScene.REGISTER)) {
+        // 自动保存历史密码以及更新密码过期信息逻辑
+        if (result.isPassed() && request.getUserId() != null && request.isAutoProcessUpdatePasswordLogic()) {
             savePasswordHistory(request.getUserId(), request.getPassword());
             updatePasswordExpiration(request.getUserId());
         }
 
         // 失败直接抛出异常
-        result.ifErrorThrow();
+        if (!request.isManualProcessError()) {
+            result.ifErrorThrow();
+        }
 
         return result;
     }
@@ -131,7 +131,9 @@ public class DefaultCredentialSecurityService implements CredentialSecurityServi
                 .findFirst()
                 .ifPresent(policy -> {
                     int maxDays = policy.getMaxDays();
-                    passwordExpirationService.updateLastChanged(userId, maxDays);
+                    int graceLoginCount = policy.getGraceLoginCount();
+                    int warningDaysBefore = policy.getWarningDaysBefore();
+                    passwordExpirationService.updateLastChanged(userId, maxDays, graceLoginCount, warningDaysBefore);
                 });
     }
 }

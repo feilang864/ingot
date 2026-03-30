@@ -9,7 +9,8 @@
         <result column="nickname" property="nickname"/>
         <result column="phone" property="phone"/>
         <result column="email" property="email"/>
-        <result column="status" property="status"/>
+        <result column="enabled" property="enabled"/>
+        <result column="locked" property="locked"/>
         <result column="created_at" property="createdAt"/>
     </resultMap>
 
@@ -20,7 +21,8 @@
                u.phone,
                u.email,
                u.avatar,
-               u.status,
+               u.enabled,
+               u.locked,
                u.created_at
         FROM sys_user_tenant AS ut
                  LEFT JOIN sys_user AS u ON u.id = ut.user_id
@@ -42,8 +44,11 @@
         <if test="condition.phone != null and condition.phone != ''">
             AND u.phone LIKE CONCAT('%', #{condition.phone}, '%')
         </if>
-        <if test="condition.status != null and condition.status != ''">
-            AND u.status = #{condition.status}
+        <if test="condition.enabled != null">
+            AND u.enabled = #{condition.enabled}
+        </if>
+        <if test="condition.locked != null">
+            AND u.locked = #{condition.locked}
         </if>
         <if test="condition.deptId != null and condition.deptId > 0">
             AND ud.tenant_id = #{tenantId}
@@ -63,7 +68,8 @@
                u.phone,
                u.email,
                u.avatar,
-               u.status,
+               u.enabled,
+               u.locked,
                u.created_at
         FROM tenant_user_dept_private AS ud
                  LEFT JOIN sys_user AS u ON u.id = ud.user_id

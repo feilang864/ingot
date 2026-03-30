@@ -1,7 +1,5 @@
 package com.ingot.framework.commons.model.types;
 
-import com.ingot.framework.commons.model.enums.UserStatusEnum;
-
 /**
  * <p>Description  : UserType.</p>
  * <p>Author       : jy.</p>
@@ -40,14 +38,12 @@ public interface UserType {
     String getAvatar();
 
     /**
-     * 状态, 0:正常，9:禁用
+     * 是否启用（true-启用 false-禁用）
      */
-    UserStatusEnum getStatus();
+    Boolean getEnabled();
 
     /**
-     * 设置状态
-     *
-     * @param status 状态
+     * 是否锁定（true-锁定 false-正常）
      */
-    void setStatus(UserStatusEnum status);
+    Boolean getLocked();
 }

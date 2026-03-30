@@ -123,7 +123,7 @@ public class InOAuth2ResourceServerConfiguration {
      * {@link AbstractUserDetailsAuthenticationProvider}可用，增加如下配置
      */
     @Bean
-    public InitializeUserDetailsBeanManagerConfigurer ingotInitializeUserDetailsBeanManagerConfigurer(
+    public InitializeUserDetailsBeanManagerConfigurer customInitializeUserDetailsBeanManagerConfigurer(
             ApplicationContext context) {
         return new InitializeUserDetailsBeanManagerConfigurer(context);
     }

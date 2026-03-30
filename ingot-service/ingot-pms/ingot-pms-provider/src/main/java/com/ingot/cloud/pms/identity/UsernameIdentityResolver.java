@@ -12,6 +12,7 @@ import com.ingot.framework.commons.model.security.UserDetailsRequest;
 import com.ingot.framework.commons.model.security.UserDetailsResponse;
 import com.ingot.framework.commons.model.security.UserIdentityTypeEnum;
 import com.ingot.framework.security.core.identity.UserIdentityResolver;
+import com.ingot.framework.security.credential.service.CredentialSecurityService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -31,6 +32,7 @@ public class UsernameIdentityResolver implements UserIdentityResolver {
     private final BizAppService bizAppService;
     private final BizRoleService bizRoleService;
     private final BizUserService bizUserService;
+    private final CredentialSecurityService credentialSecurityService;
 
     @Override
     public boolean supports(UserIdentityTypeEnum type) {
@@ -43,15 +45,18 @@ public class UsernameIdentityResolver implements UserIdentityResolver {
         // 1.作为手机号查询
         SysUser user = sysUserService.getOne(Wrappers.<SysUser>lambdaQuery()
                 .eq(SysUser::getPhone, username));
-        if (user != null) {
-            return IdentityUtil.map(user, request.getUserType(), request.getTenant(),
-                    sysTenantService, sysUserTenantService, bizUserService, bizAppService, bizRoleService);
+        if (user == null) {
+            // 2.作为用户名查询
+            user = sysUserService.getOne(Wrappers.<SysUser>lambdaQuery()
+                    .eq(SysUser::getUsername, username));
         }
-        // 2.作为用户名查询
-        user = sysUserService.getOne(Wrappers.<SysUser>lambdaQuery()
-                .eq(SysUser::getUsername, username));
-        return IdentityUtil.map(user, request.getUserType(), request.getTenant(),
+        UserDetailsResponse response = IdentityUtil.map(user, request.getUserType(), request.getTenant(),
                 sysTenantService, sysUserTenantService, bizUserService, bizAppService, bizRoleService);
+        // 用户名/密码登录：由 PMS 填充凭证过期状态，避免 Auth 服务直接访问凭证数据库
+        if (user != null) {
+            IdentityUtil.fillCredentialState(response, user.getId(), credentialSecurityService);
+        }
+        return response;
     }
 
 

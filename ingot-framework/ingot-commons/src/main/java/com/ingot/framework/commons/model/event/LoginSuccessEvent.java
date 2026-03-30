@@ -8,5 +8,5 @@ import com.ingot.framework.commons.model.common.AuthSuccessDTO;
  * <p>Date         : 2023/6/28.</p>
  * <p>Time         : 9:09 AM.</p>
  */
-public record LoginEvent(AuthSuccessDTO payload) {
+public record LoginSuccessEvent(AuthSuccessDTO payload) {
 }

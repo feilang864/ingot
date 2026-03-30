@@ -33,4 +33,12 @@ public class AuthSuccessDTO implements Serializable {
      * 登录时间
      */
     private LocalDateTime time;
+    /**
+     * 用户ID
+     */
+    private Long userId;
+    /**
+     * 用户类型
+     */
+    private String userType;
 }

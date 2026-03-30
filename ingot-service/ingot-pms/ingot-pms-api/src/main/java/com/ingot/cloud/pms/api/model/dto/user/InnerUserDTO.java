@@ -2,7 +2,6 @@ package com.ingot.cloud.pms.api.model.dto.user;
 
 import java.io.Serializable;
 
-import com.ingot.framework.commons.model.enums.UserStatusEnum;
 import com.ingot.framework.oss.common.OssUrl;
 import lombok.Data;
 
@@ -46,7 +45,12 @@ public class InnerUserDTO implements Serializable {
     private String avatar;
 
     /**
-     * 状态, 0:正常，9:禁用
+     * 是否启用（true-启用 false-禁用）
      */
-    private UserStatusEnum status;
+    private Boolean enabled;
+
+    /**
+     * 是否锁定（true-锁定 false-未锁定）
+     */
+    private Boolean locked;
 }

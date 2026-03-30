@@ -1,5 +1,7 @@
 package com.ingot.framework.security.credential.data.config;
 
+import com.ingot.framework.security.credential.data.mapper.MapperModule;
+import com.ingot.framework.security.credential.data.service.ServiceModule;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
@@ -11,7 +13,7 @@ import org.springframework.context.annotation.ComponentScan;
  * @since 2026/2/4
  */
 @AutoConfiguration
-@MapperScan("com.ingot.framework.security.credential.data.mapper")
-@ComponentScan("com.ingot.framework.security.credential.data.service")
+@MapperScan(basePackageClasses = MapperModule.class)
+@ComponentScan(basePackageClasses = ServiceModule.class)
 public class CredentialDataAutoConfiguration {
 }
