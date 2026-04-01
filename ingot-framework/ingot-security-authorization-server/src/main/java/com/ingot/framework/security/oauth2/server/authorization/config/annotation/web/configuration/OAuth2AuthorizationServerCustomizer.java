@@ -18,7 +18,7 @@ public class OAuth2AuthorizationServerCustomizer implements Customizer<OAuth2Aut
     @Override
     public void customize(OAuth2AuthorizationEndpointConfigurer configurer) {
         // remove OAuth2AuthorizationCodeRequestAuthenticationConverter
-        // add IngotOAuth2AuthorizationCodeRequestAuthenticationConverter
+        // add CustomOAuth2AuthorizationCodeRequestAuthenticationConverter
         // 替换原有Converter
         configurer.authorizationRequestConverters(converters -> {
             converters.removeIf(converter -> converter instanceof OAuth2AuthorizationCodeRequestAuthenticationConverter);
