@@ -85,6 +85,26 @@ public interface CacheConstants {
      */
     String AUTHORIZATION_DETAILS = "auth_details";
 
+    /**
+     * BFF session key 前缀
+     */
+    String BFF_SESSION = IGNORE_TENANT_PREFIX + ":bff_session";
+
+    /**
+     * BFF session cookie 名称
+     */
+    String BFF_SESSION_COOKIE_NAME = "IN_SESSION";
+
+    /**
+     * 构建 BFF session 的完整 Redis key
+     *
+     * @param sessionId 会话 ID
+     * @return {@code in:bff_session:{sessionId}}
+     */
+    static String bffSessionKey(String sessionId) {
+        return BFF_SESSION + ":" + sessionId;
+    }
+
     interface Security {
         String PREFIX = IGNORE_TENANT_PREFIX + ":security";
         

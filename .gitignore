@@ -12,4 +12,6 @@
 **/generated/
 /output/
 
+/**/bin/
+
 .idea

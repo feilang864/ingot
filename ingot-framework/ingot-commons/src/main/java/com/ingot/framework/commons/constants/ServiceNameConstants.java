@@ -28,4 +28,14 @@ public interface ServiceNameConstants {
      */
     String SECURITY_SERVICE = "ingot-service-security";
 
+    /**
+     * 授权服务
+     */
+    String AUTH_SERVICE = "ingot-service-auth";
+
+    /**
+     * BFF 服务
+     */
+    String BFF_SERVICE = "ingot-service-bff";
+
 }

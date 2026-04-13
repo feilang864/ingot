@@ -85,7 +85,7 @@ public class OAuth2PreAuthorizationRequestEndpointConfigurer extends AbstractOAu
         httpSecurity.addFilterBefore(
                 postProcess(userDetailsFilter), OAuth2PreAuthorizationCodeRequestEndpointFilter.class);
 
-        // 增加处理client认证
+        // 增加处理 client认证
         OAuth2PreAuthorizationClientAuthenticationFilter clientFilter =
                 new OAuth2PreAuthorizationClientAuthenticationFilter(authenticationManager, this.requestMatcher);
         if (errorResponseHandler != null) {

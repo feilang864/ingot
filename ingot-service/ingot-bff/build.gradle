@@ -1,0 +1,19 @@
+apply from: "${project.getRootDir().path}/config/service-base.gradle"
+
+dependencies {
+    implementation(deps.spring.spring_boot.web_starter)
+    implementation(deps.spring.spring_boot.actuator_starter)
+    implementation(deps.spring.spring_boot.configuration_processor)
+
+    implementation project(ingot.framework_feign)
+    implementation project(ingot.framework_sentinel)
+    implementation project(ingot.framework_security)
+    implementation project(ingot.framework_tenant)
+    implementation project(ingot.framework_core)
+    implementation project(ingot.framework_data_redis)
+    implementation project(ingot.framework_feign)
+    implementation project(ingot.framework_sentinel)
+    implementation project(ingot.framework_commons)
+    implementation project(ingot.framework_openapi)
+    implementation project(ingot.framework_crypto)
+}

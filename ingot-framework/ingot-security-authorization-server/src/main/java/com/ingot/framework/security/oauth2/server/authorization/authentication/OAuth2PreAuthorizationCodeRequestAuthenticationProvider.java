@@ -19,7 +19,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2ErrorCodes;
 import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
-import org.springframework.security.oauth2.core.endpoint.PkceParameterNames;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 
 /**
@@ -61,12 +60,6 @@ public class OAuth2PreAuthorizationCodeRequestAuthenticationProvider implements 
             OAuth2ErrorUtils.throwInvalidRequestParameter(OAuth2ParameterNames.SCOPE, null);
         }
 
-        // code_challenge (REQUIRED for public clients) - RFC 7636 (PKCE)
-        String codeChallenge = (String) additionalParameters.get(PkceParameterNames.CODE_CHALLENGE);
-        if (StrUtil.isEmpty(codeChallenge) && registeredClient.getClientSettings().isRequireProofKey()) {
-            OAuth2ErrorUtils.throwInvalidRequestParameter(PkceParameterNames.CODE_CHALLENGE, null);
-        }
-
         // 1.获取用户信息
         Authentication userAuth = (Authentication) preAuthorizationAuthenticationToken.getPrincipal();
         InUser user = null;
@@ -79,8 +72,8 @@ public class OAuth2PreAuthorizationCodeRequestAuthenticationProvider implements 
                             "用户无法访问"));
         }
 
-        // 保存会话时长，使用刷新token持续时间
-        long timeToLive = registeredClient.getTokenSettings().getRefreshTokenTimeToLive().getSeconds();
+        // 保存会话时长，使用token持续时间
+        long timeToLive = registeredClient.getTokenSettings().getAccessTokenTimeToLive().getSeconds();
         List<TenantMainDTO> allows = ListUtil.list(false, InAuthorityUtils.extractAllowTenants(user.getAuthorities()));
         return OAuth2PreAuthorizationCodeRequestAuthenticationToken
                 .authenticated(user, allows, additionalParameters, timeToLive);

@@ -9,5 +9,5 @@ import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
  * <p>Time         : 10:16 PM.</p>
  */
 public interface InClientAuthenticationMethod {
-    ClientAuthenticationMethod PRE_AUTH = new ClientAuthenticationMethod("pre_auth");
+    ClientAuthenticationMethod PRE_AUTH_NONE = new ClientAuthenticationMethod("pre_auth_none");
 }

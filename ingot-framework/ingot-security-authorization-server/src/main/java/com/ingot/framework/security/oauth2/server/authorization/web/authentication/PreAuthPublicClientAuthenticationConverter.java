@@ -20,12 +20,12 @@ import org.springframework.security.web.authentication.AuthenticationConverter;
 import org.springframework.util.MultiValueMap;
 
 /**
- * <p>Description  : PreAuthClientAuthenticationConverter.</p>
+ * <p>Description  : 预授权公开客户端转换.</p>
  * <p>Author       : wangchao.</p>
  * <p>Date         : 2023/9/5.</p>
  * <p>Time         : 9:55 PM.</p>
  */
-public class PreAuthClientAuthenticationConverter implements AuthenticationConverter {
+public class PreAuthPublicClientAuthenticationConverter implements AuthenticationConverter {
     private static final String PKCE_ERROR_URI = "https://datatracker.ietf.org/doc/html/rfc7636#section-4.4.1";
 
     @Nullable
@@ -70,7 +70,7 @@ public class PreAuthClientAuthenticationConverter implements AuthenticationConve
         parameters.forEach((key, value) ->
                 additionalParameters.put(key, (value.size() == 1) ? value.get(0) : value.toArray(new String[0])));
 
-        return new OAuth2ClientAuthenticationToken(clientId, InClientAuthenticationMethod.PRE_AUTH, null,
+        return new OAuth2ClientAuthenticationToken(clientId, InClientAuthenticationMethod.PRE_AUTH_NONE, null,
                 additionalParameters);
     }
 }

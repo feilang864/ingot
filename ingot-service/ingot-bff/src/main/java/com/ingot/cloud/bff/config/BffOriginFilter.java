@@ -1,0 +1,98 @@
+package com.ingot.cloud.bff.config;
+
+import java.io.IOException;
+import java.net.URI;
+import java.util.List;
+
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.StrUtil;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpStatus;
+import org.springframework.lang.NonNull;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+/**
+ * <p>BFF 请求来源校验过滤器，限制只有授权的内部前端系统可以调用 BFF 接口</p>
+ *
+ * <p>校验逻辑：检查请求的 {@code Origin} 或 {@code Referer} Header 是否命中
+ * {@link BffProperties.SecurityConfig#getAllowedFrontends()} 白名单。
+ * 白名单未配置（空或 null）时跳过校验，适用于开发环境。</p>
+ *
+ * <h3>配置示例：</h3>
+ * <pre>{@code
+ * ingot:
+ *   bff:
+ *     security:
+ *       allowed-frontends:
+ *         - https://admin.ingotcloud.top
+ *         - https://login.ingotcloud.top
+ * }</pre>
+ *
+ * @author jy
+ * @since 1.0.0
+ *
+ * @see BffProperties.SecurityConfig
+ */
+@Slf4j
+@Component
+@Order(Ordered.HIGHEST_PRECEDENCE)
+@RequiredArgsConstructor
+public class BffOriginFilter extends OncePerRequestFilter {
+    private final BffProperties properties;
+
+    @Override
+    protected void doFilterInternal(@NonNull HttpServletRequest request,
+                                    @NonNull HttpServletResponse response,
+                                    @NonNull FilterChain filterChain) throws ServletException, IOException {
+        List<String> allowedFrontends = properties.getSecurity().getAllowedFrontends();
+
+        if (CollUtil.isEmpty(allowedFrontends)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        String origin = request.getHeader("Origin");
+        String referer = request.getHeader("Referer");
+
+        if (isAllowed(origin, allowedFrontends) || isRefererAllowed(referer, allowedFrontends)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        log.warn("[BffOriginFilter] blocked request from origin={}, referer={}, uri={}",
+                origin, referer, request.getRequestURI());
+        response.setStatus(HttpStatus.FORBIDDEN.value());
+        response.getWriter().write("{\"code\":\"S0403\",\"message\":\"Forbidden: origin not allowed\"}");
+    }
+
+    private boolean isAllowed(String origin, List<String> allowedOrigins) {
+        if (StrUtil.isEmpty(origin)) {
+            return false;
+        }
+        return allowedOrigins.stream().anyMatch(
+                allowed -> StrUtil.equalsIgnoreCase(origin, allowed));
+    }
+
+    private boolean isRefererAllowed(String referer, List<String> allowedOrigins) {
+        if (StrUtil.isEmpty(referer)) {
+            return false;
+        }
+        try {
+            String refererOrigin = URI.create(referer).resolve("/").toString();
+            // 移除末尾斜杠后比较
+            String normalized = StrUtil.removeSuffix(refererOrigin, "/");
+            return allowedOrigins.stream().anyMatch(
+                    allowed -> StrUtil.equalsIgnoreCase(normalized, StrUtil.removeSuffix(allowed, "/")));
+        } catch (Exception e) {
+            return false;
+        }
+    }
+}

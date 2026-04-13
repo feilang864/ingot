@@ -1,9 +1,9 @@
 package org.springframework.security.oauth2.server.authorization.web;
 
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.List;
 
-import com.ingot.framework.security.oauth2.server.authorization.web.authentication.PreAuthClientAuthenticationConverter;
+import com.ingot.framework.security.oauth2.server.authorization.web.authentication.PreAuthPublicClientAuthenticationConverter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,9 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.oauth2.core.OAuth2Error;
-import org.springframework.security.oauth2.server.authorization.web.authentication.ClientSecretBasicAuthenticationConverter;
-import org.springframework.security.oauth2.server.authorization.web.authentication.ClientSecretPostAuthenticationConverter;
-import org.springframework.security.oauth2.server.authorization.web.authentication.JwtClientAssertionAuthenticationConverter;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.DelegatingAuthenticationConverter;
 import org.springframework.security.web.util.matcher.RequestMatcher;
@@ -34,11 +31,8 @@ public final class OAuth2PreAuthorizationClientAuthenticationFilter extends Once
                                                             RequestMatcher requestMatcher) {
         proxy = new OAuth2ClientAuthenticationFilter(authenticationManager, requestMatcher);
         proxy.setAuthenticationConverter(new DelegatingAuthenticationConverter(
-                Arrays.asList(
-                        new JwtClientAssertionAuthenticationConverter(),
-                        new ClientSecretBasicAuthenticationConverter(),
-                        new ClientSecretPostAuthenticationConverter(),
-                        new PreAuthClientAuthenticationConverter())));
+                List.of(new PreAuthPublicClientAuthenticationConverter())
+        ));
     }
 
     @Override

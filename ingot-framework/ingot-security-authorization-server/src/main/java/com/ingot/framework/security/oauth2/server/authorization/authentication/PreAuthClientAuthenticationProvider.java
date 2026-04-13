@@ -26,7 +26,8 @@ public class PreAuthClientAuthenticationProvider implements AuthenticationProvid
         OAuth2ClientAuthenticationToken clientAuthentication =
                 (OAuth2ClientAuthenticationToken) authentication;
 
-        if (!InClientAuthenticationMethod.PRE_AUTH.equals(clientAuthentication.getClientAuthenticationMethod())) {
+        if (!InClientAuthenticationMethod.PRE_AUTH_NONE.equals(
+                clientAuthentication.getClientAuthenticationMethod())) {
             return null;
         }
 

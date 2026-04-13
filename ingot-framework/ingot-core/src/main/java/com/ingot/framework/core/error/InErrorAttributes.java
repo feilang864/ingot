@@ -16,6 +16,7 @@ import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.boot.web.servlet.error.ErrorAttributes;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.WebRequest;
@@ -51,9 +52,12 @@ public class InErrorAttributes implements ErrorAttributes, Ordered {
             error = error.getCause();
         }
 
-        if (error instanceof BizException) {
-            finalAttributes.put(R.CODE, ((BizException) error).getCode());
+        if (error instanceof BizException bizError) {
+            finalAttributes.put(R.CODE, bizError.getCode());
             finalAttributes.put(R.MESSAGE, error.getMessage());
+        } else if (error instanceof OAuth2AuthenticationException oauthError) {
+            finalAttributes.put(R.CODE, oauthError.getError().getErrorCode());
+            finalAttributes.put(R.MESSAGE, oauthError.getError().getDescription());
         } else {
             finalAttributes.put(R.CODE, BaseErrorCode.INTERNAL_SERVER_ERROR.getCode());
             finalAttributes.put(R.MESSAGE, BaseErrorCode.INTERNAL_SERVER_ERROR.getText());

@@ -46,9 +46,10 @@ public class CustomOAuth2AuthorizationCodeRequestAuthenticationConverter impleme
                 (OAuth2AuthorizationCodeRequestAuthenticationToken) converter.convert(request);
 
         Map<String, Object> additionalParameters = new HashMap<>(token.getAdditionalParameters());
-        // 不用传递method，默认使用S256
-        additionalParameters.put(PkceParameterNames.CODE_CHALLENGE_METHOD, "S256");
-        // 添加sessionId
+        // 如果没有传递method，默认使用S256
+        if (!additionalParameters.containsKey(PkceParameterNames.CODE_CHALLENGE_METHOD)) {
+            additionalParameters.put(PkceParameterNames.CODE_CHALLENGE_METHOD, "S256");
+        }
         additionalParameters.put(InOAuth2ParameterNames.SESSION_ID, SecurityUtils.getSessionId(request));
 
         return ErrorUtil.tryOrThrow(() ->
