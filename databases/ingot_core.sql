@@ -11,7 +11,7 @@
  Target Server Version : 80044 (8.0.44)
  File Encoding         : 65001
 
- Date: 30/03/2026 14:32:17
+ Date: 13/04/2026 14:58:00
 */
 
 SET NAMES utf8mb4;
@@ -40,7 +40,7 @@ CREATE TABLE `account_lock_state` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_user_id_type` (`user_id`,`user_type`) COMMENT '用户ID + 用户类型联合唯一',
   KEY `idx_locked` (`locked`,`locked_until`) USING BTREE COMMENT '锁定状态和到期时间索引'
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='账号锁定状态表';
+) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='账号锁定状态表';
 
 -- ----------------------------
 -- Records of account_lock_state
@@ -74,7 +74,7 @@ CREATE TABLE `account_security_event` (
   KEY `idx_created_at` (`created_at`) USING BTREE COMMENT '时间索引',
   KEY `idx_event_type` (`event_type`,`created_at`) USING BTREE COMMENT '事件类型索引',
   KEY `idx_tenant` (`tenant_id`,`created_at`) USING BTREE COMMENT '租户索引'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='账号安全事件表';
+) ENGINE=InnoDB AUTO_INCREMENT=27 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='账号安全事件表';
 
 -- ----------------------------
 -- Records of account_security_event
@@ -100,7 +100,7 @@ CREATE TABLE `biz_leaf_alloc` (
 -- ----------------------------
 BEGIN;
 INSERT INTO `biz_leaf_alloc` (`biz_tag`, `max_id`, `step`, `description`, `update_time`) VALUES ('app_id', 1, 1000, 'AppID', '2024-01-10 10:44:38');
-INSERT INTO `biz_leaf_alloc` (`biz_tag`, `max_id`, `step`, `description`, `update_time`) VALUES ('org_code', 4001, 1000, '组织编码', '2025-11-26 02:47:41');
+INSERT INTO `biz_leaf_alloc` (`biz_tag`, `max_id`, `step`, `description`, `update_time`) VALUES ('org_code', 5001, 1000, '组织编码', '2026-04-13 06:54:12');
 INSERT INTO `biz_leaf_alloc` (`biz_tag`, `max_id`, `step`, `description`, `update_time`) VALUES ('org_role_code', 38001, 1000, '组织角色编码', '2025-11-26 01:19:25');
 COMMIT;
 
@@ -126,9 +126,6 @@ CREATE TABLE `meta_app` (
 -- Records of meta_app
 -- ----------------------------
 BEGIN;
-INSERT INTO `meta_app` (`id`, `menu_id`, `permission_id`, `name`, `icon`, `intro`, `status`, `created_at`, `updated_at`, `deleted_at`) VALUES (1171488916134948866, 881187162883403778, 881187314109034498, '通讯录', 'typcn:contacts', '通讯录', '0', '2025-11-25 16:24:44', '2025-11-25 16:24:44', '2025-11-25 10:57:44');
-INSERT INTO `meta_app` (`id`, `menu_id`, `permission_id`, `name`, `icon`, `intro`, `status`, `created_at`, `updated_at`, `deleted_at`) VALUES (1171527459418927105, 881187162883403778, 881187314109034498, '通讯录', 'typcn:contacts', '通讯录', '0', '2025-11-25 18:57:53', '2025-11-25 18:57:53', '2025-11-25 10:58:55');
-INSERT INTO `meta_app` (`id`, `menu_id`, `permission_id`, `name`, `icon`, `intro`, `status`, `created_at`, `updated_at`, `deleted_at`) VALUES (1171528976788090881, 881187162883403778, 881187314109034498, '通讯录', 'typcn:contacts', 'to', '0', '2025-11-25 19:03:55', '2025-11-25 19:03:55', '2025-11-25 11:04:06');
 INSERT INTO `meta_app` (`id`, `menu_id`, `permission_id`, `name`, `icon`, `intro`, `status`, `created_at`, `updated_at`, `deleted_at`) VALUES (1171529080861356034, 881187162883403778, 881187314109034498, '通讯录', 'typcn:contacts', '通讯录', '0', '2025-11-25 19:04:20', '2025-11-25 19:04:20', NULL);
 INSERT INTO `meta_app` (`id`, `menu_id`, `permission_id`, `name`, `icon`, `intro`, `status`, `created_at`, `updated_at`, `deleted_at`) VALUES (1172811256819085314, 968448105293086721, 969898113037041666, '链接', 'tdesign:link', '12213', '0', '2025-11-29 07:59:15', '2025-11-29 07:59:15', NULL);
 COMMIT;
@@ -315,9 +312,6 @@ INSERT INTO `meta_role` (`id`, `pid`, `name`, `code`, `subject`, `type`, `org_ty
 INSERT INTO `meta_role` (`id`, `pid`, `name`, `code`, `subject`, `type`, `org_type`, `filter_dept`, `scope_type`, `scopes`, `status`, `created_at`, `updated_at`, `deleted_at`) VALUES (3, 1000, '子管理员', 'role_org_sub_admin', '0', '0', '1', 0, 0, '[]', '0', '2021-06-23 09:28:33', '2025-11-27 14:15:06', NULL);
 INSERT INTO `meta_role` (`id`, `pid`, `name`, `code`, `subject`, `type`, `org_type`, `filter_dept`, `scope_type`, `scopes`, `status`, `created_at`, `updated_at`, `deleted_at`) VALUES (1000, 0, '默认', '', '0', '1', '1', 0, 0, '[]', '0', '2025-11-24 16:59:34', '2025-11-25 13:04:57', NULL);
 INSERT INTO `meta_role` (`id`, `pid`, `name`, `code`, `subject`, `type`, `org_type`, `filter_dept`, `scope_type`, `scopes`, `status`, `created_at`, `updated_at`, `deleted_at`) VALUES (1075807902184353794, 1000, '主管', 'role_org_manager', '0', '0', '1', 1, 2, '[]', '0', '2025-03-06 15:42:33', '2025-04-29 17:29:02', NULL);
-INSERT INTO `meta_role` (`id`, `pid`, `name`, `code`, `subject`, `type`, `org_type`, `filter_dept`, `scope_type`, `scopes`, `status`, `created_at`, `updated_at`, `deleted_at`) VALUES (1171439550737149954, 0, '测试', '', '0', '1', '0', 0, 0, '[]', '0', '2025-11-25 13:08:34', '2025-11-25 13:11:55', '2025-11-25 05:20:10');
-INSERT INTO `meta_role` (`id`, `pid`, `name`, `code`, `subject`, `type`, `org_type`, `filter_dept`, `scope_type`, `scopes`, `status`, `created_at`, `updated_at`, `deleted_at`) VALUES (1171439627882983426, 0, '123', '412', '0', '1', '0', 0, 0, '[]', '9', '2025-11-25 13:08:53', '2025-11-25 13:11:45', '2025-11-25 05:11:48');
-INSERT INTO `meta_role` (`id`, `pid`, `name`, `code`, `subject`, `type`, `org_type`, `filter_dept`, `scope_type`, `scopes`, `status`, `created_at`, `updated_at`, `deleted_at`) VALUES (1171442381980430338, 1171439550737149954, '1231222', 'role_asad', '0', '0', '0', 0, 0, '[]', '0', '2025-11-25 13:19:49', '2025-11-25 13:19:56', '2025-11-25 05:20:06');
 COMMIT;
 
 -- ----------------------------
@@ -416,10 +410,7 @@ CREATE TABLE `sys_social_details` (
 -- Records of sys_social_details
 -- ----------------------------
 BEGIN;
-INSERT INTO `sys_social_details` (`id`, `tenant_id`, `app_id`, `app_secret`, `redirect_url`, `name`, `type`, `status`, `created_at`, `updated_at`, `deleted_at`) VALUES (925397365717008385, 1, 'wx18dc0ea8c6ca1d7d', '405c60badf7b620189aae44f5de635a9', NULL, 'ingot开源小程序', 'wechat_miniprogram', '0', '2024-01-16 14:24:46', '2025-12-07 14:41:26', NULL);
-INSERT INTO `sys_social_details` (`id`, `tenant_id`, `app_id`, `app_secret`, `redirect_url`, `name`, `type`, `status`, `created_at`, `updated_at`, `deleted_at`) VALUES (1175813676360687618, 1, 'wx123124124', '12312dwaswd', NULL, 'aaaa', 'wechat_miniprogram', '0', '2025-12-07 14:49:47', '2025-12-07 14:49:47', '2025-12-07 06:50:08');
-INSERT INTO `sys_social_details` (`id`, `tenant_id`, `app_id`, `app_secret`, `redirect_url`, `name`, `type`, `status`, `created_at`, `updated_at`, `deleted_at`) VALUES (1175838348993257473, 1, '123123', '123123', NULL, '123123', 'wechat_miniprogram', '0', '2025-12-07 16:27:50', '2025-12-07 16:27:50', '2025-12-07 08:36:08');
-INSERT INTO `sys_social_details` (`id`, `tenant_id`, `app_id`, `app_secret`, `redirect_url`, `name`, `type`, `status`, `created_at`, `updated_at`, `deleted_at`) VALUES (1177538662951268353, 1, '123', '123', NULL, '123124', 'wechat_miniprogram', '0', '2025-12-12 09:04:16', '2025-12-12 09:04:16', '2025-12-12 01:08:38');
+INSERT INTO `sys_social_details` (`id`, `tenant_id`, `app_id`, `app_secret`, `redirect_url`, `name`, `type`, `status`, `created_at`, `updated_at`, `deleted_at`) VALUES (925397365717008385, 1, 'wx123123123', '123123123', NULL, 'ingot开源小程序', 'wechat_miniprogram', '0', '2024-01-16 14:24:46', '2025-12-07 14:41:26', NULL);
 COMMIT;
 
 -- ----------------------------
@@ -446,8 +437,8 @@ CREATE TABLE `sys_tenant` (
 -- ----------------------------
 BEGIN;
 INSERT INTO `sys_tenant` (`id`, `name`, `code`, `org_type`, `avatar`, `status`, `plan_id`, `end_at`, `created_at`, `updated_at`, `deleted_at`) VALUES (1, '英格特云', 'ingot', '0', 'http://ingot-cloud:9090/ingot/public/tenant/logo.png?t=1710140674513', '0', 0, NULL, '2021-01-06 13:48:26', '2025-11-25 17:01:06', NULL);
-INSERT INTO `sys_tenant` (`id`, `name`, `code`, `org_type`, `avatar`, `status`, `plan_id`, `end_at`, `created_at`, `updated_at`, `deleted_at`) VALUES (1171513454855974913, '测试组织', 'org_%d128122', '1', 'ingot/tenant/ic_logo.png', '0', 0, NULL, '2025-11-25 18:02:14', '2025-11-25 18:06:55', '2025-11-25 10:06:58');
-INSERT INTO `sys_tenant` (`id`, `name`, `code`, `org_type`, `avatar`, `status`, `plan_id`, `end_at`, `created_at`, `updated_at`, `deleted_at`) VALUES (1171766486562762754, '测试组织', 'org_%d192114', '1', 'ingot/user/avatar/ic_logo.png', '0', 0, NULL, '2025-11-26 10:47:42', NULL, NULL);
+INSERT INTO `sys_tenant` (`id`, `name`, `code`, `org_type`, `avatar`, `status`, `plan_id`, `end_at`, `created_at`, `updated_at`, `deleted_at`) VALUES (1171766486562762754, '测试组织', 'org_%d192114', '1', 'ingot/user/avatar/ic_logo.png', '0', 0, NULL, '2025-11-26 10:47:42', NULL, '2026-04-13 06:53:45');
+INSERT INTO `sys_tenant` (`id`, `name`, `code`, `org_type`, `avatar`, `status`, `plan_id`, `end_at`, `created_at`, `updated_at`, `deleted_at`) VALUES (1221838049504022529, '测试组织', 'org_%d256113', '1', 'ingot/user/avatar/jiujiuqiuzhi.jpg', '0', 0, NULL, '2026-04-13 14:54:13', NULL, NULL);
 COMMIT;
 
 -- ----------------------------
@@ -528,12 +519,8 @@ CREATE TABLE `sys_user` (
 -- Records of sys_user
 -- ----------------------------
 BEGIN;
-INSERT INTO `sys_user` (`id`, `username`, `password`, `must_change_pwd`, `password_changed_at`, `nickname`, `phone`, `email`, `avatar`, `enabled`, `locked`, `last_login_at`, `last_login_ip`, `version`, `created_at`, `updated_at`, `deleted_at`) VALUES (1, 'admin', '{bcrypt}$2a$10$frVeEWrN5PRLZTheYoMw1uHNiylDcS3uvByYiYACJIvCkAMaoEfr2', 0, '2026-03-10 16:40:30', '超级管理员', '18888888888', 'admin@ingot.com', 'ingot/user/avatar/1/logo.png', 1, 0, '2026-03-27 16:32:04', '192.168.1.133', 0, '2021-01-03 11:02:46', '2026-02-11 14:12:44', NULL);
-INSERT INTO `sys_user` (`id`, `username`, `password`, `must_change_pwd`, `password_changed_at`, `nickname`, `phone`, `email`, `avatar`, `enabled`, `locked`, `last_login_at`, `last_login_ip`, `version`, `created_at`, `updated_at`, `deleted_at`) VALUES (883383523896766465, '18603243837', '{bcrypt}$2a$10$WklERpnX/5sqH.qkEDG9Kep9RfWC6hGgD7ksZQXHtxI/R5epa4zWO', 0, '2025-09-05 07:45:50', '王超', '18603243837', NULL, 'ingot/user/avatar/883383523896766465/logo.png', 1, 0, '2026-03-27 16:08:07', '192.168.1.133', 0, '2023-09-22 15:56:46', '2025-09-05 07:45:50', NULL);
-INSERT INTO `sys_user` (`id`, `username`, `password`, `must_change_pwd`, `password_changed_at`, `nickname`, `phone`, `email`, `avatar`, `enabled`, `locked`, `last_login_at`, `last_login_ip`, `version`, `created_at`, `updated_at`, `deleted_at`) VALUES (968109737946447873, '11111111111', '{bcrypt}$2a$10$uRgJPZ7s0nP1EEqnpDUXR.DHFUSQuiGD6tAsxd2JMQTIl5wbaD0EW', 1, '2026-03-27 16:07:21', '测试用户', '11111111111', NULL, 'ingot/user/avatar/968109737946447873/logo.png', 1, 0, '2026-03-27 16:07:36', '192.168.1.133', 0, '2024-05-13 11:08:29', '2025-11-26 14:18:11', NULL);
-INSERT INTO `sys_user` (`id`, `username`, `password`, `must_change_pwd`, `password_changed_at`, `nickname`, `phone`, `email`, `avatar`, `enabled`, `locked`, `last_login_at`, `last_login_ip`, `version`, `created_at`, `updated_at`, `deleted_at`) VALUES (1009463137401110530, '12312312312', '{bcrypt}$2a$10$.0Kvau6alsADXfw6ikV2bOij.59ArljWr3viZPLm.G2FqzcY1ZAT2', 1, '2026-03-10 16:43:14', '1231233', '12312312312', NULL, 'ingot/user/avatar/1009463137401110530/ic_logo.png', 1, 0, NULL, NULL, 0, '2024-09-04 13:52:08', '2025-11-26 10:47:16', NULL);
-INSERT INTO `sys_user` (`id`, `username`, `password`, `must_change_pwd`, `password_changed_at`, `nickname`, `phone`, `email`, `avatar`, `enabled`, `locked`, `last_login_at`, `last_login_ip`, `version`, `created_at`, `updated_at`, `deleted_at`) VALUES (1095389297838202881, '18603243838', '{bcrypt}$2a$10$9wod3QviKn2YYzslhjeQhew98DoV4qfMb6HipqOPyMyCQQwk5XsBK', 1, '2026-01-12 17:41:57', '测试1人员', '18603243838', NULL, 'ingot/user/avatar/1095389297838202881/jiujiuqiuzhi.jpg', 1, 0, NULL, NULL, 0, '2025-04-29 16:32:01', '2026-01-12 17:41:57', NULL);
-INSERT INTO `sys_user` (`id`, `username`, `password`, `must_change_pwd`, `password_changed_at`, `nickname`, `phone`, `email`, `avatar`, `enabled`, `locked`, `last_login_at`, `last_login_ip`, `version`, `created_at`, `updated_at`, `deleted_at`) VALUES (1215700742884433922, '123123', '{bcrypt}$2a$10$DH4T5ErTeN6gYHukqGZ2vO1SfTo6NxTetOOTYjoZ40LZK5Dx/bg3C', 0, '2026-03-27 16:56:59', '测试人员', '123123', NULL, NULL, 1, 0, '2026-03-27 17:35:45', '192.168.1.133', 0, '2026-03-27 16:26:45', NULL, NULL);
+INSERT INTO `sys_user` (`id`, `username`, `password`, `must_change_pwd`, `password_changed_at`, `nickname`, `phone`, `email`, `avatar`, `enabled`, `locked`, `last_login_at`, `last_login_ip`, `version`, `created_at`, `updated_at`, `deleted_at`) VALUES (1, 'admin', '{bcrypt}$2a$10$frVeEWrN5PRLZTheYoMw1uHNiylDcS3uvByYiYACJIvCkAMaoEfr2', 0, '2026-03-10 16:40:30', '超级管理员', '18888888888', 'admin@ingot.com', 'ingot/user/avatar/1/logo.png', 1, 0, '2026-04-13 14:50:29', '192.168.1.148', 0, '2021-01-03 11:02:46', '2026-02-11 14:12:44', NULL);
+INSERT INTO `sys_user` (`id`, `username`, `password`, `must_change_pwd`, `password_changed_at`, `nickname`, `phone`, `email`, `avatar`, `enabled`, `locked`, `last_login_at`, `last_login_ip`, `version`, `created_at`, `updated_at`, `deleted_at`) VALUES (1221837466541903874, '测试用户', '{bcrypt}$2a$10$ks9PAjjnT3Dtz509tY6Pv.Kqk2EsV1jRLU.hBNNTEX2tKn8erbRtK', 1, '2026-04-13 14:51:54', '测试1', '18600000001', NULL, NULL, 1, 0, NULL, NULL, 0, '2026-04-13 14:51:54', NULL, NULL);
 COMMIT;
 
 -- ----------------------------
@@ -579,10 +566,7 @@ CREATE TABLE `sys_user_tenant` (
 -- ----------------------------
 BEGIN;
 INSERT INTO `sys_user_tenant` (`id`, `user_id`, `tenant_id`, `main`, `name`, `avatar`, `created_at`) VALUES (1, 1, 1, b'1', '英格特云', 'http://ingot-cloud:9090/ingot/public/tenant/logo.png?t=1710140674513', '2023-09-22 16:21:52');
-INSERT INTO `sys_user_tenant` (`id`, `user_id`, `tenant_id`, `main`, `name`, `avatar`, `created_at`) VALUES (1171517865699307521, 883383523896766465, 1, b'1', '英格特云', 'http://ingot-cloud:9090/ingot/public/tenant/logo.png?t=1710140674513', '2025-11-25 18:19:46');
-INSERT INTO `sys_user_tenant` (`id`, `user_id`, `tenant_id`, `main`, `name`, `avatar`, `created_at`) VALUES (1171766486688591873, 883383523896766465, 1171766486562762754, b'0', '测试组织', 'ingot/user/avatar/ic_logo.png', '2025-11-26 10:47:42');
-INSERT INTO `sys_user_tenant` (`id`, `user_id`, `tenant_id`, `main`, `name`, `avatar`, `created_at`) VALUES (1171818507911294978, 968109737946447873, 1171766486562762754, b'1', '测试组织', 'ingot/user/avatar/ic_logo.png', '2025-11-26 14:14:25');
-INSERT INTO `sys_user_tenant` (`id`, `user_id`, `tenant_id`, `main`, `name`, `avatar`, `created_at`) VALUES (1215700742989291521, 1215700742884433922, 1, b'1', '英格特云', 'http://ingot-cloud:9090/ingot/public/tenant/logo.png?t=1710140674513', '2026-03-27 16:26:45');
+INSERT INTO `sys_user_tenant` (`id`, `user_id`, `tenant_id`, `main`, `name`, `avatar`, `created_at`) VALUES (1221838049940230146, 1221837466541903874, 1221838049504022529, b'1', '测试组织', 'ingot/user/avatar/jiujiuqiuzhi.jpg', '2026-04-13 14:54:13');
 COMMIT;
 
 -- ----------------------------
@@ -631,7 +615,7 @@ BEGIN;
 INSERT INTO `tenant_dept` (`id`, `tenant_id`, `pid`, `name`, `sort`, `main_flag`, `status`, `created_at`, `updated_at`, `deleted_at`) VALUES (1, 1, 0, '英格特云', 0, b'1', '1', '2025-11-24 16:36:06', '2025-11-24 16:36:08', NULL);
 INSERT INTO `tenant_dept` (`id`, `tenant_id`, `pid`, `name`, `sort`, `main_flag`, `status`, `created_at`, `updated_at`, `deleted_at`) VALUES (1171517787697836033, 1, 1, '测试部门', 999, b'0', '0', '2025-11-25 18:19:27', '2026-03-27 16:19:54', NULL);
 INSERT INTO `tenant_dept` (`id`, `tenant_id`, `pid`, `name`, `sort`, `main_flag`, `status`, `created_at`, `updated_at`, `deleted_at`) VALUES (1171520634774614018, 1, 1171517787697836033, '测试小组', 999, b'0', '0', '2025-11-25 18:30:46', NULL, NULL);
-INSERT INTO `tenant_dept` (`id`, `tenant_id`, `pid`, `name`, `sort`, `main_flag`, `status`, `created_at`, `updated_at`, `deleted_at`) VALUES (1171766486592122882, 1171766486562762754, 0, '测试组织', 0, b'1', '0', '2025-11-26 10:47:42', NULL, NULL);
+INSERT INTO `tenant_dept` (`id`, `tenant_id`, `pid`, `name`, `sort`, `main_flag`, `status`, `created_at`, `updated_at`, `deleted_at`) VALUES (1221838049558548481, 1221838049504022529, 0, '测试组织', 0, b'1', '0', '2026-04-13 14:54:13', NULL, NULL);
 COMMIT;
 
 -- ----------------------------
@@ -682,7 +666,6 @@ CREATE TABLE `tenant_role_private` (
 -- ----------------------------
 BEGIN;
 INSERT INTO `tenant_role_private` (`id`, `pid`, `tenant_id`, `name`, `code`, `type`, `filter_dept`, `scope_type`, `scopes`, `status`, `sort`, `created_at`, `updated_at`, `deleted_at`) VALUES (1171742951152807937, 0, 1, '测试组', '', '1', 0, 0, '[]', '0', 0, '2025-11-26 09:14:11', '2025-11-26 09:14:35', NULL);
-INSERT INTO `tenant_role_private` (`id`, `pid`, `tenant_id`, `name`, `code`, `type`, `filter_dept`, `scope_type`, `scopes`, `status`, `sort`, `created_at`, `updated_at`, `deleted_at`) VALUES (1171744270194307074, 1171742951152807937, 1, '测试角色1', 'role_org_2368118', '0', 0, 1, '[1171517787697836033]', '0', 0, '2025-11-26 09:19:25', '2025-11-26 09:19:40', '2025-11-26 01:19:49');
 INSERT INTO `tenant_role_private` (`id`, `pid`, `tenant_id`, `name`, `code`, `type`, `filter_dept`, `scope_type`, `scopes`, `status`, `sort`, `created_at`, `updated_at`, `deleted_at`) VALUES (1171746929370460162, 0, 1, '测试组2', '', '1', 0, 0, '[]', '0', 0, '2025-11-26 09:29:59', '2025-11-26 09:29:59', NULL);
 INSERT INTO `tenant_role_private` (`id`, `pid`, `tenant_id`, `name`, `code`, `type`, `filter_dept`, `scope_type`, `scopes`, `status`, `sort`, `created_at`, `updated_at`, `deleted_at`) VALUES (1171747701302751233, 1171742951152807937, 1, '测试角色', 'role_org_2368148', '0', 1, 2, '[]', '0', 0, '2025-11-26 09:33:03', '2025-11-27 16:05:48', NULL);
 COMMIT;
@@ -707,13 +690,9 @@ CREATE TABLE `tenant_role_user_private` (
 -- Records of tenant_role_user_private
 -- ----------------------------
 BEGIN;
-INSERT INTO `tenant_role_user_private` (`id`, `tenant_id`, `role_id`, `meta_role`, `user_id`, `dept_id`) VALUES (1171818434175430657, 1171766486562762754, 3, b'1', 883383523896766465, NULL);
-INSERT INTO `tenant_role_user_private` (`id`, `tenant_id`, `role_id`, `meta_role`, `user_id`, `dept_id`) VALUES (1171818508146176001, 1171766486562762754, 3, b'1', 968109737946447873, NULL);
 INSERT INTO `tenant_role_user_private` (`id`, `tenant_id`, `role_id`, `meta_role`, `user_id`, `dept_id`) VALUES (1172813477321371650, 1, 1, b'1', 1, NULL);
 INSERT INTO `tenant_role_user_private` (`id`, `tenant_id`, `role_id`, `meta_role`, `user_id`, `dept_id`) VALUES (1172813477325565954, 1, 2, b'1', 1, NULL);
-INSERT INTO `tenant_role_user_private` (`id`, `tenant_id`, `role_id`, `meta_role`, `user_id`, `dept_id`) VALUES (1181257390797959170, 1, 3, b'1', 883383523896766465, NULL);
-INSERT INTO `tenant_role_user_private` (`id`, `tenant_id`, `role_id`, `meta_role`, `user_id`, `dept_id`) VALUES (1215699020527050753, 1, 1075807902184353794, b'1', 883383523896766465, 1171517787697836033);
-INSERT INTO `tenant_role_user_private` (`id`, `tenant_id`, `role_id`, `meta_role`, `user_id`, `dept_id`) VALUES (1215700841081479170, 1, 2, b'1', 1215700742884433922, NULL);
+INSERT INTO `tenant_role_user_private` (`id`, `tenant_id`, `role_id`, `meta_role`, `user_id`, `dept_id`) VALUES (1221838050204471297, 1221838049504022529, 2, b'1', 1221837466541903874, NULL);
 COMMIT;
 
 -- ----------------------------
@@ -734,7 +713,6 @@ CREATE TABLE `tenant_user_dept_private` (
 -- Records of tenant_user_dept_private
 -- ----------------------------
 BEGIN;
-INSERT INTO `tenant_user_dept_private` (`id`, `tenant_id`, `user_id`, `dept_id`) VALUES (1215696710417653761, 1, 883383523896766465, 1171520634774614018);
 COMMIT;
 
 SET FOREIGN_KEY_CHECKS = 1;
