@@ -19,7 +19,7 @@ import reactor.core.publisher.Mono;
  *
  * <p>核心职责：</p>
  * <ul>
- *     <li>清洗外部伪造的内部 Header（{@code Ingot-From}、{@code X-Client-Real-IP}）</li>
+ *     <li>清洗外部伪造的内部 Header（{@code In-Inner-From}、{@code X-Client-Real-IP}）</li>
  *     <li>解析客户端真实 IP，标准化后注入 {@code X-Client-Real-IP} Header，
  *         供下游服务和网关过滤器统一读取，避免不同网络层获取的 IP 不一致</li>
  * </ul>
