@@ -42,7 +42,7 @@ import reactor.core.publisher.Mono;
  *         → 注入 {@code Authorization: Bearer JWT} → 转发下游</li>
  * </ol>
  *
- * <p>指纹校验在网关层执行。优先从 {@code X-Ca-Sig} Header 读取前端设备指纹，
+ * <p>指纹校验在网关层执行。优先从 {@code X-In-Ca-Sig} Header 读取前端设备指纹，
  * 读取不到时降级为服务端 IP+UA 计算。确保所有经过 session 转换的请求都受到保护，
  * 即使攻击者窃取了 Cookie，也无法从不同设备发起请求。</p>
  *
