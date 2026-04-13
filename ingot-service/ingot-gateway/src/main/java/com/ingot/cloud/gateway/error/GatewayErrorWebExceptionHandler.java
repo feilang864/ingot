@@ -37,7 +37,7 @@ public class GatewayErrorWebExceptionHandler implements ErrorWebExceptionHandler
     @Override
     public Mono<Void> handle(ServerWebExchange exchange, @NonNull Throwable ex) {
         ServerHttpResponse response = exchange.getResponse();
-        log.debug("GatewayErrorWebExceptionHandler - error", ex);
+        log.debug("[GatewayErrorWebExceptionHandler] - error", ex);
 
         if (response.isCommitted()) {
             return Mono.error(ex);
@@ -51,8 +51,8 @@ public class GatewayErrorWebExceptionHandler implements ErrorWebExceptionHandler
             HttpStatusCode statusCode = ((ResponseStatusException) ex).getStatusCode();
             response.setStatusCode(statusCode);
             if (statusCode == HttpStatus.SERVICE_UNAVAILABLE) {
-                r = R.error(
-                        BaseErrorCode.REQUEST_FALLBACK.getCode(), ex.getMessage());
+                log.debug("[GatewayErrorWebExceptionHandler] - SERVICE_UNAVAILABLE={}", ex.getMessage());
+                r = R.error(BaseErrorCode.REQUEST_FALLBACK);
             }
         }
 
