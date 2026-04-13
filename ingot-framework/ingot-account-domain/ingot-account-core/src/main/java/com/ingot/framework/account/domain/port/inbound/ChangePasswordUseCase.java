@@ -28,6 +28,13 @@ public interface ChangePasswordUseCase {
     void resetPassword(ResetPasswordCommand command);
 
     /**
+     * 强制修改密码
+     *
+     * @param command 初始化命令
+     */
+    void forceChangePassword(ForceChangePasswordCommand command);
+
+    /**
      * 修改密码命令
      */
     @Value
@@ -89,6 +96,30 @@ public interface ChangePasswordUseCase {
          * 操作人姓名
          */
         String operatorName;
+
+        /**
+         * 操作来源（PMS 管理端 / MEMBER 会员端 等）
+         */
+        EventSource source;
+    }
+
+    @Value
+    @Builder
+    class ForceChangePasswordCommand {
+        /**
+         * 用户ID
+         */
+        Long userId;
+
+        /**
+         * 用户类型
+         */
+        UserTypeEnum userType;
+
+        /**
+         * 新密码
+         */
+        String newPassword;
 
         /**
          * 操作来源（PMS 管理端 / MEMBER 会员端 等）

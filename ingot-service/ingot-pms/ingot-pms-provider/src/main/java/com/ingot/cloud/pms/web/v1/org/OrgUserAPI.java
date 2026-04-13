@@ -7,6 +7,7 @@ import com.ingot.cloud.pms.api.model.dto.user.UserPasswordDTO;
 import com.ingot.cloud.pms.api.model.dto.user.UserQueryDTO;
 import com.ingot.cloud.pms.service.biz.BizUserService;
 import com.ingot.cloud.pms.service.domain.SysUserService;
+import com.ingot.framework.commons.constants.PermissionConstants;
 import com.ingot.framework.commons.model.support.R;
 import com.ingot.framework.commons.model.support.RShortcuts;
 import com.ingot.framework.security.access.AdminOrHasAnyAuthority;
@@ -83,6 +84,7 @@ public class OrgUserAPI implements RShortcuts {
     }
 
     @Operation(summary = "组织用户密码初始化", description = "组织用户密码初始化")
+    @AdminOrHasAnyAuthority({PermissionConstants.INIT_PASSWORD})
     @PutMapping("/pwd/init")
     public R<?> initFixPwd(@RequestBody UserPasswordDTO params) {
         bizUserService.orgPasswordInit(params);

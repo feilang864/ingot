@@ -406,12 +406,11 @@ public class BizUserServiceImpl implements BizUserService {
             return;
         }
 
-        changePasswordUseCase.changePassword(ChangePasswordUseCase.ChangePasswordCommand.builder()
+        changePasswordUseCase.forceChangePassword(ChangePasswordUseCase.ForceChangePasswordCommand.builder()
                 .userId(id)
                 .userType(UserTypeEnum.ADMIN)
-                .oldPassword(params.getPassword())
                 .newPassword(params.getNewPassword())
-                .confirmPassword(params.getNewPassword())
+                .source(EventSource.PMS)
                 .build());
     }
 

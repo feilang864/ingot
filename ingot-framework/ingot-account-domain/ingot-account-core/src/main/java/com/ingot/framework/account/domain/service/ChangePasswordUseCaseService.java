@@ -131,6 +131,52 @@ public class ChangePasswordUseCaseService implements ChangePasswordUseCase {
         log.info("用户 {} 密码重置成功", command.getUserId());
     }
 
+    @Override
+    public void forceChangePassword(ForceChangePasswordCommand command) {
+        log.info("用户 {} 强制修改密码", command.getUserId());
+
+        // 1. 校验用户存在
+        UserAccount account = userAccountPort.findById(command.getUserId(), command.getUserType())
+                .orElseThrow(() -> new IllegalArgumentException(getMessage("Password.UserNonExist")));
+
+        // 2. 密码策略
+        CredentialValidateRequest request = CredentialValidateRequest.builder()
+                .scene(CredentialScene.CHANGE_PASSWORD)
+                .userId(command.getUserId())
+                .username(account.getUsername())
+                .password(command.getNewPassword())
+                .userType(command.getUserType())
+                .manualProcessError(false)
+                .autoProcessUpdatePasswordLogic(true)
+                .build();
+        credentialSecurityService.validate(request); // 失败自动抛出异常
+
+        // 3. 更新用户密码
+        String newPasswordHash = passwordEncoder.encode(command.getNewPassword());
+        boolean updated = userCredentialPort.updatePassword(
+                command.getUserId(),
+                command.getUserType(),
+                newPasswordHash,
+                LocalDateTime.now(),
+                account.getVersion(),
+                false
+        );
+
+        AssertionUtil.checkArgument(updated, getMessage("Password.UpdateFailed"));
+
+        // 4. 发布密码重置事件
+        securityEventPort.publishEvent(AccountSecurityEvent.builder()
+                .userId(command.getUserId())
+                .userType(command.getUserType())
+                .eventType(SecurityEventType.FORCE_CHANGE_PASSWORD)
+                .result(true)
+                .source(command.getSource())
+                .createdAt(LocalDateTime.now())
+                .build());
+
+        log.info("用户 {} 密码强制修改成功", command.getUserId());
+    }
+
     private String getMessage(String code) {
         return message.getMessage(code);
     }

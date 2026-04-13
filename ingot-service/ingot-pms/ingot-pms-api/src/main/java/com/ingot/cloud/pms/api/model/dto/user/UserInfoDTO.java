@@ -29,4 +29,8 @@ public class UserInfoDTO implements Serializable {
      * 可以访问的租户
      */
     private List<TenantMainDTO> allows;
+    /**
+     * 必须修改密码
+     */
+    private Boolean mustChangePwd;
 }

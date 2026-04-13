@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.collection.ListUtil;
+import cn.hutool.core.util.BooleanUtil;
 import com.ingot.cloud.pms.api.model.convert.UserConvert;
 import com.ingot.cloud.pms.api.model.domain.MetaApp;
 import com.ingot.cloud.pms.api.model.domain.SysUser;
@@ -22,6 +23,7 @@ import com.ingot.cloud.pms.service.biz.BizRoleService;
 import com.ingot.cloud.pms.service.biz.BizUserService;
 import com.ingot.cloud.pms.service.domain.SysTenantService;
 import com.ingot.cloud.pms.service.domain.SysUserTenantService;
+import com.ingot.framework.commons.constants.PermissionConstants;
 import com.ingot.framework.commons.model.common.TenantMainDTO;
 import com.ingot.framework.commons.model.security.UserDetailsResponse;
 import com.ingot.framework.commons.model.security.UserTypeEnum;
@@ -135,7 +137,7 @@ public class IdentityUtil {
                     // 租户维度可访问性：allows 不为空，且登录 tenant 在允许列表内
                     boolean tenantAccessible = CollUtil.isNotEmpty(allows)
                             && (tenant == null || allows.stream()
-                                    .anyMatch(item -> Long.parseLong(item.getId()) == tenant));
+                            .anyMatch(item -> Long.parseLong(item.getId()) == tenant));
 
                     // 账号维度：来自 sys_user.enabled / sys_user.locked
                     boolean userEnabled = Boolean.TRUE.equals(value.getEnabled()) && tenantAccessible;
@@ -155,6 +157,12 @@ public class IdentityUtil {
 
                     // 设置用户 Scope
                     List<String> scopes = new ArrayList<>();
+                    // 强制修改密码
+                    if (BooleanUtil.isTrue(user.getMustChangePwd())) {
+                        scopes.add(PermissionConstants.INIT_PASSWORD);
+                        result.setScopes(scopes);
+                        return result;
+                    }
 
                     // 确认登录的租户不为空，那么查询用户在当前租户下的Scope
                     if (tenant != null) {

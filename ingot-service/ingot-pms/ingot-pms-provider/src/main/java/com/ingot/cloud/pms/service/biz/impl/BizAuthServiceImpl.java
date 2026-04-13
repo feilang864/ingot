@@ -70,6 +70,7 @@ public class BizAuthServiceImpl implements BizAuthService {
             result.setUser(userConvert.toUserBaseInfo(userInfo));
             result.setRoles(user.getRoleCodeList());
             result.setAllows(allows);
+            result.setMustChangePwd(userInfo.getMustChangePwd());
             return result;
         });
     }
