@@ -11,7 +11,7 @@
  Target Server Version : 80044 (8.0.44)
  File Encoding         : 65001
 
- Date: 13/04/2026 14:58:00
+ Date: 13/04/2026 15:03:55
 */
 
 SET NAMES utf8mb4;
@@ -520,7 +520,7 @@ CREATE TABLE `sys_user` (
 -- ----------------------------
 BEGIN;
 INSERT INTO `sys_user` (`id`, `username`, `password`, `must_change_pwd`, `password_changed_at`, `nickname`, `phone`, `email`, `avatar`, `enabled`, `locked`, `last_login_at`, `last_login_ip`, `version`, `created_at`, `updated_at`, `deleted_at`) VALUES (1, 'admin', '{bcrypt}$2a$10$frVeEWrN5PRLZTheYoMw1uHNiylDcS3uvByYiYACJIvCkAMaoEfr2', 0, '2026-03-10 16:40:30', '超级管理员', '18888888888', 'admin@ingot.com', 'ingot/user/avatar/1/logo.png', 1, 0, '2026-04-13 14:50:29', '192.168.1.148', 0, '2021-01-03 11:02:46', '2026-02-11 14:12:44', NULL);
-INSERT INTO `sys_user` (`id`, `username`, `password`, `must_change_pwd`, `password_changed_at`, `nickname`, `phone`, `email`, `avatar`, `enabled`, `locked`, `last_login_at`, `last_login_ip`, `version`, `created_at`, `updated_at`, `deleted_at`) VALUES (1221837466541903874, '测试用户', '{bcrypt}$2a$10$ks9PAjjnT3Dtz509tY6Pv.Kqk2EsV1jRLU.hBNNTEX2tKn8erbRtK', 1, '2026-04-13 14:51:54', '测试1', '18600000001', NULL, NULL, 1, 0, NULL, NULL, 0, '2026-04-13 14:51:54', NULL, NULL);
+INSERT INTO `sys_user` (`id`, `username`, `password`, `must_change_pwd`, `password_changed_at`, `nickname`, `phone`, `email`, `avatar`, `enabled`, `locked`, `last_login_at`, `last_login_ip`, `version`, `created_at`, `updated_at`, `deleted_at`) VALUES (1221837466541903874, 'test', '{bcrypt}$2a$10$ks9PAjjnT3Dtz509tY6Pv.Kqk2EsV1jRLU.hBNNTEX2tKn8erbRtK', 1, '2026-04-13 14:51:54', '测试1', '18600000001', NULL, NULL, 1, 0, NULL, NULL, 0, '2026-04-13 14:51:54', '2026-04-13 15:03:36', NULL);
 COMMIT;
 
 -- ----------------------------
