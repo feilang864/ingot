@@ -11,12 +11,18 @@ import com.ingot.cloud.pms.api.model.vo.user.UserPageItemVO;
 import com.ingot.cloud.pms.common.BizUtils;
 import com.ingot.cloud.pms.mapper.SysUserMapper;
 import com.ingot.cloud.pms.service.domain.SysUserService;
+import com.ingot.framework.account.domain.model.UserAccount;
+import com.ingot.framework.account.domain.model.enums.EventSource;
+import com.ingot.framework.account.domain.port.inbound.DeleteAccountUseCase;
+import com.ingot.framework.account.domain.port.inbound.RegisterUserUseCase;
+import com.ingot.framework.commons.model.security.UserTypeEnum;
 import com.ingot.framework.commons.utils.DateUtil;
 import com.ingot.framework.core.utils.validation.AssertionChecker;
 import com.ingot.framework.data.mybatis.common.service.BaseServiceImpl;
+import com.ingot.framework.security.core.context.SecurityAuthContext;
+import com.ingot.framework.security.core.userdetails.InUser;
 import com.ingot.framework.tenant.TenantEnv;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 /**
@@ -30,8 +36,10 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class SysUserServiceImpl extends BaseServiceImpl<SysUserMapper, SysUser> implements SysUserService {
-    private final PasswordEncoder passwordEncoder;
     private final AssertionChecker assertionChecker;
+
+    private final RegisterUserUseCase registerUserUseCase;
+    private final DeleteAccountUseCase deleteAccountUseCase;
 
     @Override
     public IPage<UserPageItemVO> conditionPage(Page<SysUser> page, UserQueryDTO condition, Long orgId) {
@@ -56,18 +64,25 @@ public class SysUserServiceImpl extends BaseServiceImpl<SysUserMapper, SysUser> 
 
     @Override
     public void create(SysUser user) {
-        user.setMustChangePwd(Boolean.TRUE);
-        user.setPasswordChangedAt(DateUtil.now());
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setCreatedAt(DateUtil.now());
-        if (user.getEnabled() == null) {
-            user.setEnabled(Boolean.TRUE);
-        }
+        assertionChecker.checkOperation(StrUtil.isNotEmpty(user.getUsername()),
+                "SysUserServiceImpl.UsernameNonNull");
 
         checkUserUniqueField(user, null);
 
-        assertionChecker.checkOperation(save(user),
-                "SysUserServiceImpl.CreateFailed");
+        UserAccount account = registerUserUseCase.register(RegisterUserUseCase.RegisterUserCommand.builder()
+                .creationSource(RegisterUserUseCase.CreationSource.ADMIN_CREATE)
+                .username(user.getPhone())
+                .password(user.getPassword())
+                .userType(UserTypeEnum.ADMIN)
+                .phone(user.getPhone())
+                .email(user.getEmail())
+                .nickname(user.getNickname())
+                .avatar(user.getAvatar())
+                .mustChangePwd(Boolean.TRUE)
+                .createdBy(SecurityAuthContext.getUser().getId())
+                .build());
+
+        user.setId(account.getId());
     }
 
     @Override
@@ -82,8 +97,14 @@ public class SysUserServiceImpl extends BaseServiceImpl<SysUserMapper, SysUser> 
 
     @Override
     public void delete(long id) {
-        assertionChecker.checkOperation(removeById(id),
-                "SysUserServiceImpl.RemoveFailed");
+        InUser operator = SecurityAuthContext.getUser();
+        deleteAccountUseCase.deleteAccount(DeleteAccountUseCase.DeleteAccountCommand.builder()
+                .userId(id)
+                .userType(UserTypeEnum.ADMIN)
+                .source(EventSource.PMS)
+                .operatorId(operator.getId())
+                .operatorName(operator.getUsername())
+                .build());
     }
 
     private void checkUserUniqueField(SysUser update, SysUser current) {

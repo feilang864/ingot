@@ -23,14 +23,12 @@ import com.ingot.cloud.pms.api.model.vo.biz.UserOrgInfoVO;
 import com.ingot.cloud.pms.api.model.vo.user.OrgUserProfileVO;
 import com.ingot.cloud.pms.api.model.vo.user.UserPageItemWithBindRoleStatusVO;
 import com.ingot.cloud.pms.api.model.vo.user.UserProfileVO;
-import com.ingot.cloud.pms.common.BizUtils;
 import com.ingot.cloud.pms.core.BizRoleUtils;
 import com.ingot.cloud.pms.service.biz.BizDeptService;
 import com.ingot.cloud.pms.service.biz.BizRoleService;
 import com.ingot.cloud.pms.service.biz.BizUserService;
 import com.ingot.cloud.pms.service.biz.UserOpsChecker;
 import com.ingot.cloud.pms.service.domain.*;
-import com.ingot.framework.account.domain.model.UserAccount;
 import com.ingot.framework.account.domain.model.enums.EventSource;
 import com.ingot.framework.account.domain.model.enums.LockReason;
 import com.ingot.framework.account.domain.port.inbound.*;
@@ -76,8 +74,6 @@ public class BizUserServiceImpl implements BizUserService {
     private final ManageAccountStatusUseCase manageAccountStatusUseCase;
     private final LockAccountUseCase lockAccountUseCase;
     private final UnlockAccountUseCase unlockAccountUseCase;
-    private final RegisterUserUseCase registerUserUseCase;
-    private final DeleteAccountUseCase deleteAccountUseCase;
     private final AssertionChecker assertionChecker;
     private final UserOpsChecker userOpsChecker;
     private final UserConvert userConvert;
@@ -193,29 +189,20 @@ public class BizUserServiceImpl implements BizUserService {
 
     @Override
     public ResetPwdVO createUser(UserDTO params) {
-        SysUser user = userConvert.to(params);
+        if (StrUtil.isEmpty(params.getUsername())) {
+            params.setUsername(params.getPhone());
+        }
 
+        SysUser user = userConvert.to(params);
         // 默认初始化密码
         String initPwd = RandomUtil.randomString(8);
+        user.setPassword(initPwd);
 
-        BizUtils.checkUserUniqueField(user, null, sysUserService, assertionChecker);
-
-        UserAccount account = registerUserUseCase.register(RegisterUserUseCase.RegisterUserCommand.builder()
-                .creationSource(RegisterUserUseCase.CreationSource.ADMIN_CREATE)
-                .username(StrUtil.isNotEmpty(params.getUsername())
-                        ? params.getUsername() : params.getPhone())
-                .password(initPwd)
-                .userType(UserTypeEnum.ADMIN)
-                .phone(params.getPhone())
-                .email(params.getEmail())
-                .nickname(params.getNickname())
-                .avatar(params.getAvatar())
-                .createdBy(SecurityAuthContext.getUser().getId())
-                .build());
+        sysUserService.create(user);
 
         ResetPwdVO result = new ResetPwdVO();
         result.setRandom(initPwd);
-        result.setId(account.getId());
+        result.setId(user.getId());
         return result;
     }
 
@@ -244,14 +231,7 @@ public class BizUserServiceImpl implements BizUserService {
         // 取消关联部门
         tenantUserDeptPrivateService.setDepartments(id, null);
 
-        InUser operator = SecurityAuthContext.getUser();
-        deleteAccountUseCase.deleteAccount(DeleteAccountUseCase.DeleteAccountCommand.builder()
-                .userId(id)
-                .userType(UserTypeEnum.ADMIN)
-                .source(EventSource.PMS)
-                .operatorId(operator.getId())
-                .operatorName(operator.getUsername())
-                .build());
+        sysUserService.delete(id);
     }
 
     @Override
@@ -361,7 +341,6 @@ public class BizUserServiceImpl implements BizUserService {
             user = userConvert.to(params);
             user.setUsername(params.getPhone());
             user.setPassword(params.getPhone());
-            user.setMustChangePwd(Boolean.TRUE);
             sysUserService.create(user);
         }
 
