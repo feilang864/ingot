@@ -85,7 +85,7 @@ public interface UserAccountPort {
      * @param loginAt  登录时间
      * @param loginIp  登录IP
      */
-    void updateLastLogin(Long userId, UserTypeEnum userType, 
+    void updateLastLogin(Long userId, UserTypeEnum userType,
                          LocalDateTime loginAt, String loginIp);
 
     /**
@@ -96,4 +96,12 @@ public interface UserAccountPort {
      * @return true-更新成功，false-版本冲突
      */
     boolean updateWithVersion(UserAccount account, Long expectedVersion);
+
+    /**
+     * 删除账号（软删除）
+     *
+     * @param userId   用户ID
+     * @param userType 用户类型
+     */
+    void delete(Long userId, UserTypeEnum userType);
 }

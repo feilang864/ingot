@@ -14,12 +14,34 @@ import lombok.Value;
 public interface RegisterUserUseCase {
 
     /**
-     * 注册新用户
+     * 注册/创建用户
+     * <p>
+     * 同一方法覆盖两种创建来源，行为由 {@link RegisterUserCommand#getCreationSource()} 控制：
+     * <ul>
+     *   <li>{@link CreationSource#SELF_REGISTER}：用户自主注册，执行密码强度校验</li>
+     *   <li>{@link CreationSource#ADMIN_CREATE}：管理员/系统创建，跳过强度校验，
+     *       并默认将 {@code mustChangePwd} 置为 {@code true}（命令中明确传入 {@code false} 除外）</li>
+     * </ul>
      *
-     * @param command 注册命令
+     * @param command 创建命令
      * @return 创建的用户账号
      */
     UserAccount register(RegisterUserCommand command);
+
+    /**
+     * 账号创建来源
+     */
+    enum CreationSource {
+        /**
+         * 用户自主注册：执行密码强度等凭证策略校验
+         */
+        SELF_REGISTER,
+
+        /**
+         * 管理员/系统创建：跳过凭证策略校验，密码通常为随机值，用户首次登录须修改
+         */
+        ADMIN_CREATE
+    }
 
     /**
      * 注册用户命令
@@ -27,6 +49,12 @@ public interface RegisterUserUseCase {
     @Value
     @Builder
     class RegisterUserCommand {
+        /**
+         * 账号创建来源，控制是否执行凭证策略校验
+         * <p>为 {@code null} 时等同于 {@link CreationSource#SELF_REGISTER}</p>
+         */
+        CreationSource creationSource;
+
         /**
          * 用户类型
          */
@@ -38,7 +66,8 @@ public interface RegisterUserUseCase {
         String username;
 
         /**
-         * 原始密码（UseCase内部会加密）
+         * 原始密码（UseCase 内部会加密）
+         * <p>{@link CreationSource#ADMIN_CREATE} 场景下通常传入随机生成的密码</p>
          */
         String password;
 
@@ -66,5 +95,11 @@ public interface RegisterUserUseCase {
          * 创建人ID
          */
         Long createdBy;
+
+        /**
+         * 是否强制修改密码
+         * <p>默认强制修改</p>
+         */
+        Boolean mustChangePwd;
     }
 }

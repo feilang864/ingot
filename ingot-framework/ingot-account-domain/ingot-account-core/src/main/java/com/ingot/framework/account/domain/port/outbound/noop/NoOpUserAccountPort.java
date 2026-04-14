@@ -1,12 +1,12 @@
 package com.ingot.framework.account.domain.port.outbound.noop;
 
+import java.time.LocalDateTime;
+import java.util.Optional;
+
 import com.ingot.framework.account.domain.model.UserAccount;
 import com.ingot.framework.account.domain.port.outbound.UserAccountPort;
 import com.ingot.framework.commons.model.security.UserTypeEnum;
 import lombok.extern.slf4j.Slf4j;
-
-import java.time.LocalDateTime;
-import java.util.Optional;
 
 /**
  * UserAccountPort 空实现
@@ -70,5 +70,10 @@ public class NoOpUserAccountPort implements UserAccountPort {
     public boolean updateWithVersion(UserAccount account, Long expectedVersion) {
         log.warn("[NoOp] UserAccountPort.updateWithVersion 未实现，返回 false");
         return false;
+    }
+
+    @Override
+    public void delete(Long userId, UserTypeEnum userType) {
+        log.warn("[NoOp] UserAccountPort.delete 未实现 userId={} userType={}", userId, userType);
     }
 }

@@ -7,8 +7,8 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.ingot.cloud.pms.api.model.domain.SysUser;
 import com.ingot.cloud.pms.api.model.dto.user.AllOrgUserFilterDTO;
 import com.ingot.cloud.pms.api.model.dto.user.UserQueryDTO;
-import com.ingot.cloud.pms.api.model.status.PmsErrorCode;
 import com.ingot.cloud.pms.api.model.vo.user.UserPageItemVO;
+import com.ingot.cloud.pms.common.BizUtils;
 import com.ingot.cloud.pms.mapper.SysUserMapper;
 import com.ingot.cloud.pms.service.domain.SysUserService;
 import com.ingot.framework.commons.utils.DateUtil;
@@ -87,29 +87,6 @@ public class SysUserServiceImpl extends BaseServiceImpl<SysUserMapper, SysUser> 
     }
 
     private void checkUserUniqueField(SysUser update, SysUser current) {
-        // 更新字段不为空，并且不等于当前值
-        if (StrUtil.isNotEmpty(update.getUsername())
-                && (current == null || !StrUtil.equals(update.getUsername(), current.getUsername()))) {
-            assertionChecker.checkBiz(count(Wrappers.<SysUser>lambdaQuery()
-                            .eq(SysUser::getUsername, update.getUsername())) == 0,
-                    PmsErrorCode.ExistUsername.getCode(),
-                    "SysUserServiceImpl.UsernameExist");
-        }
-
-        if (StrUtil.isNotEmpty(update.getPhone())
-                && (current == null || !StrUtil.equals(update.getPhone(), current.getPhone()))) {
-            assertionChecker.checkBiz(count(Wrappers.<SysUser>lambdaQuery()
-                            .eq(SysUser::getPhone, update.getPhone())) == 0,
-                    PmsErrorCode.ExistPhone.getCode(),
-                    "SysUserServiceImpl.PhoneExist");
-        }
-
-        if (StrUtil.isNotEmpty(update.getEmail())
-                && (current == null || !StrUtil.equals(update.getEmail(), current.getEmail()))) {
-            assertionChecker.checkBiz(count(Wrappers.<SysUser>lambdaQuery()
-                            .eq(SysUser::getEmail, update.getEmail())) == 0,
-                    PmsErrorCode.ExistEmail.getCode(),
-                    "SysUserServiceImpl.EmailExist");
-        }
+        BizUtils.checkUserUniqueField(update, current, this, assertionChecker);
     }
 }

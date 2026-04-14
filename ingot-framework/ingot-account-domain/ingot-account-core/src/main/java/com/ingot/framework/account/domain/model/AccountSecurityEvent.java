@@ -192,6 +192,25 @@ public class AccountSecurityEvent {
     }
 
     /**
+     * 创建账号删除事件
+     *
+     * @param source 来源（管理端传 {@link EventSource#PMS}，自助注销传对应来源）
+     */
+    public static AccountSecurityEvent accountDeleted(Long userId, UserTypeEnum userType,
+                                                      EventSource source, Long operatorId,
+                                                      String operatorName) {
+        return AccountSecurityEvent.builder()
+                .userId(userId)
+                .userType(userType)
+                .eventType(SecurityEventType.ACCOUNT_DELETED)
+                .source(source)
+                .operatorId(operatorId)
+                .operatorName(operatorName)
+                .createdAt(LocalDateTime.now())
+                .build();
+    }
+
+    /**
      * 创建密码修改事件
      */
     public static AccountSecurityEvent passwordChanged(Long userId, UserTypeEnum userType) {

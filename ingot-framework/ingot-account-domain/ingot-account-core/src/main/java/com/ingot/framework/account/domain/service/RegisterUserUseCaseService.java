@@ -43,34 +43,39 @@ public class RegisterUserUseCaseService implements RegisterUserUseCase {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public UserAccount register(RegisterUserCommand command) {
-        log.info("注册新用户: {}", command.getUsername());
+        boolean isAdminCreate = command.getCreationSource() == CreationSource.ADMIN_CREATE;
+
+        log.info("[RegisterUser] 创建账号 username={} source={}",
+                command.getUsername(),
+                isAdminCreate ? "ADMIN_CREATE" : "SELF_REGISTER");
 
         // 1. 校验用户名唯一性
         if (userAccountPort.existsByUsername(command.getUsername(), command.getUserType())) {
             throw new IllegalArgumentException(message.getMessage("Account.UsernameExists"));
         }
 
-        // 2. 注册场景：仅校验密码强度，不传 userId（此时用户尚未创建，无法保存历史）
-        //    注意：CredentialScene.REGISTER 场景在 validate() 内部会尝试保存历史，
-        //    但注册阶段 userId 为 null，这里只需要强度校验，历史由后续步骤手动保存。
-        //    因此使用 GENERAL 场景通过 validator 走强度策略
-        //    （GENERAL 不触发自动历史保存，具体策略由 PasswordPolicy.getApplicableScenes() 控制）
-        CredentialValidateRequest strengthRequest = CredentialValidateRequest.builder()
-                .scene(CredentialScene.REGISTER)
-                .userId(null)    // 新用户尚无ID，不触发历史保存和过期更新
-                .username(command.getUsername())
-                .password(command.getPassword())
-                .userType(command.getUserType())
-                .manualProcessError(false)
-                .autoProcessUpdatePasswordLogic(false)
-                .build();
-        // 注册场景：validate 内部在 userId=null 时不会自动保存历史/更新过期，只校验强度
-        credentialSecurityService.validate(strengthRequest); // 失败自动抛出异常
+        // 2. 凭证策略校验（仅用户自主注册时执行）
+        //    ADMIN_CREATE 场景密码为随机值，跳过强度校验；用户首次登录时须自行修改并在改密时触发策略验证
+        if (!isAdminCreate) {
+            CredentialValidateRequest strengthRequest = CredentialValidateRequest.builder()
+                    .scene(CredentialScene.REGISTER)
+                    .userId(null)    // 新用户尚无 ID，不触发历史保存和过期更新
+                    .username(command.getUsername())
+                    .password(command.getPassword())
+                    .userType(command.getUserType())
+                    .manualProcessError(false)
+                    .autoProcessUpdatePasswordLogic(false)
+                    .build();
+            credentialSecurityService.validate(strengthRequest);
+        }
 
         // 3. 加密密码
         String passwordHash = passwordEncoder.encode(command.getPassword());
 
         // 4. 构建并保存用户账号
+        boolean mustChangePwd = command.getMustChangePwd() == null ? Boolean.TRUE
+                : command.getMustChangePwd();
+
         LocalDateTime now = LocalDateTime.now();
         UserAccount account = UserAccount.builder()
                 .userType(command.getUserType())
@@ -80,7 +85,7 @@ public class RegisterUserUseCaseService implements RegisterUserUseCase {
                 .phone(command.getPhone())
                 .email(command.getEmail())
                 .avatar(command.getAvatar())
-                .mustChangePwd(false)
+                .mustChangePwd(mustChangePwd)
                 .passwordChangedAt(now)
                 .enabled(true)
                 .locked(false)
@@ -95,7 +100,8 @@ public class RegisterUserUseCaseService implements RegisterUserUseCase {
         // 5. 初始化锁定状态
         lockStatePort.initialize(userId, command.getUserType());
 
-        // 6. 手动保存初始密码历史 + 更新密码过期时间（userId 已确定）
+        // 6. 保存初始密码历史 + 初始化密码过期记录（userId 已确定）
+        //    两种场景均需初始化：后续改密时凭证策略会检查历史和过期，确保链路完整
         credentialSecurityService.savePasswordHistory(userId, passwordHash);
         credentialSecurityService.updatePasswordExpiration(userId);
 
@@ -105,12 +111,13 @@ public class RegisterUserUseCaseService implements RegisterUserUseCase {
                 .userType(command.getUserType())
                 .eventType(SecurityEventType.ACCOUNT_CREATED)
                 .result(true)
-                .source(EventSource.SYSTEM)
+                .source(isAdminCreate ? EventSource.PMS : EventSource.SYSTEM)
                 .operatorId(command.getCreatedBy())
                 .createdAt(now)
                 .build());
 
-        log.info("用户 {} 注册成功，ID: {}", command.getUsername(), userId);
+        log.info("[RegisterUser] 账号创建成功 username={} userId={} mustChangePwd={}",
+                command.getUsername(), userId, mustChangePwd);
         return savedAccount;
     }
 }

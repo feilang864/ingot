@@ -5,15 +5,20 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.ingot.cloud.pms.api.model.convert.RoleConvert;
 import com.ingot.cloud.pms.api.model.domain.SysTenant;
+import com.ingot.cloud.pms.api.model.domain.SysUser;
+import com.ingot.cloud.pms.api.model.status.PmsErrorCode;
 import com.ingot.cloud.pms.api.model.types.RoleType;
 import com.ingot.cloud.pms.api.model.vo.role.RoleTreeNodeVO;
 import com.ingot.cloud.pms.service.domain.SysTenantService;
+import com.ingot.cloud.pms.service.domain.SysUserService;
 import com.ingot.framework.commons.model.common.TenantMainDTO;
 import com.ingot.framework.commons.model.enums.CommonStatusEnum;
 import com.ingot.framework.commons.model.enums.UserStatusEnum;
+import com.ingot.framework.core.utils.validation.AssertionChecker;
 
 /**
  * <p>Description  : BizUtils.</p>
@@ -74,5 +79,40 @@ public class BizUtils {
         item.setScopeTypeText(role.getScopeType().getText());
         item.setStatusText(role.getStatus().getText());
         return item;
+    }
+
+    /**
+     * 检测用户唯一字段
+     *
+     * @param update           更新用户
+     * @param current          当前用户
+     * @param service          用户服务
+     * @param assertionChecker checker
+     */
+    public static void checkUserUniqueField(SysUser update, SysUser current, SysUserService service, AssertionChecker assertionChecker) {
+        // 更新字段不为空，并且不等于当前值
+        if (StrUtil.isNotEmpty(update.getUsername())
+                && (current == null || !StrUtil.equals(update.getUsername(), current.getUsername()))) {
+            assertionChecker.checkBiz(service.count(Wrappers.<SysUser>lambdaQuery()
+                            .eq(SysUser::getUsername, update.getUsername())) == 0,
+                    PmsErrorCode.ExistUsername.getCode(),
+                    "SysUserServiceImpl.UsernameExist");
+        }
+
+        if (StrUtil.isNotEmpty(update.getPhone())
+                && (current == null || !StrUtil.equals(update.getPhone(), current.getPhone()))) {
+            assertionChecker.checkBiz(service.count(Wrappers.<SysUser>lambdaQuery()
+                            .eq(SysUser::getPhone, update.getPhone())) == 0,
+                    PmsErrorCode.ExistPhone.getCode(),
+                    "SysUserServiceImpl.PhoneExist");
+        }
+
+        if (StrUtil.isNotEmpty(update.getEmail())
+                && (current == null || !StrUtil.equals(update.getEmail(), current.getEmail()))) {
+            assertionChecker.checkBiz(service.count(Wrappers.<SysUser>lambdaQuery()
+                            .eq(SysUser::getEmail, update.getEmail())) == 0,
+                    PmsErrorCode.ExistEmail.getCode(),
+                    "SysUserServiceImpl.EmailExist");
+        }
     }
 }

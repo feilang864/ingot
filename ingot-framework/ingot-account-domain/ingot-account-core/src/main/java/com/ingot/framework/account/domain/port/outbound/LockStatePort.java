@@ -74,6 +74,14 @@ public interface LockStatePort {
                           Long operatorId, String operatorName);
 
     /**
+     * 删除用户的锁定状态记录（账号注销时调用）
+     *
+     * @param userId   用户ID
+     * @param userType 用户类型
+     */
+    void deleteByUser(Long userId, UserTypeEnum userType);
+
+    /**
      * 游标分页查找过期的临时锁定
      * <p>
      * 使用 {@code id > afterId} 游标方式，避免大数据量下 OFFSET 效率退化问题。

@@ -58,6 +58,11 @@ public class NoOpLockStatePort implements LockStatePort {
     }
 
     @Override
+    public void deleteByUser(Long userId, UserTypeEnum userType) {
+        log.debug("[NoOp] LockStatePort.deleteByUser userId={}", userId);
+    }
+
+    @Override
     public List<LockState> findExpiredLocksByPage(LocalDateTime now, Long afterId, int pageSize) {
         return Collections.emptyList();
     }

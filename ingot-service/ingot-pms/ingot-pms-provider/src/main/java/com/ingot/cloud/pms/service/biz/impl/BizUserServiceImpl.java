@@ -23,31 +23,29 @@ import com.ingot.cloud.pms.api.model.vo.biz.UserOrgInfoVO;
 import com.ingot.cloud.pms.api.model.vo.user.OrgUserProfileVO;
 import com.ingot.cloud.pms.api.model.vo.user.UserPageItemWithBindRoleStatusVO;
 import com.ingot.cloud.pms.api.model.vo.user.UserProfileVO;
+import com.ingot.cloud.pms.common.BizUtils;
 import com.ingot.cloud.pms.core.BizRoleUtils;
 import com.ingot.cloud.pms.service.biz.BizDeptService;
 import com.ingot.cloud.pms.service.biz.BizRoleService;
 import com.ingot.cloud.pms.service.biz.BizUserService;
 import com.ingot.cloud.pms.service.biz.UserOpsChecker;
 import com.ingot.cloud.pms.service.domain.*;
+import com.ingot.framework.account.domain.model.UserAccount;
+import com.ingot.framework.account.domain.model.enums.EventSource;
+import com.ingot.framework.account.domain.model.enums.LockReason;
+import com.ingot.framework.account.domain.port.inbound.*;
 import com.ingot.framework.commons.constants.RoleConstants;
 import com.ingot.framework.commons.model.security.ResetPwdVO;
+import com.ingot.framework.commons.model.security.UserTypeEnum;
 import com.ingot.framework.commons.utils.DateUtil;
 import com.ingot.framework.core.utils.validation.AssertionChecker;
 import com.ingot.framework.data.mybatis.common.utils.PageUtils;
 import com.ingot.framework.security.core.context.SecurityAuthContext;
+import com.ingot.framework.security.core.userdetails.InUser;
 import com.ingot.framework.tenant.TenantContextHolder;
 import com.ingot.framework.tenant.TenantEnv;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import com.ingot.cloud.pms.api.model.dto.user.AccountLockDTO;
-import com.ingot.framework.account.domain.model.enums.EventSource;
-import com.ingot.framework.account.domain.model.enums.LockReason;
-import com.ingot.framework.account.domain.port.inbound.ChangePasswordUseCase;
-import com.ingot.framework.account.domain.port.inbound.LockAccountUseCase;
-import com.ingot.framework.account.domain.port.inbound.ManageAccountStatusUseCase;
-import com.ingot.framework.account.domain.port.inbound.UnlockAccountUseCase;
-import com.ingot.framework.commons.model.security.UserTypeEnum;
-import com.ingot.framework.security.core.userdetails.InUser;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -78,6 +76,8 @@ public class BizUserServiceImpl implements BizUserService {
     private final ManageAccountStatusUseCase manageAccountStatusUseCase;
     private final LockAccountUseCase lockAccountUseCase;
     private final UnlockAccountUseCase unlockAccountUseCase;
+    private final RegisterUserUseCase registerUserUseCase;
+    private final DeleteAccountUseCase deleteAccountUseCase;
     private final AssertionChecker assertionChecker;
     private final UserOpsChecker userOpsChecker;
     private final UserConvert userConvert;
@@ -196,20 +196,26 @@ public class BizUserServiceImpl implements BizUserService {
         SysUser user = userConvert.to(params);
 
         // 默认初始化密码
-        String initPwd = RandomUtil.randomString(6);
+        String initPwd = RandomUtil.randomString(8);
 
-        if (StrUtil.isNotEmpty(params.getUsername())) {
-            user.setUsername(params.getUsername());
-        } else {
-            user.setUsername(params.getPhone());
-        }
-        user.setMustChangePwd(Boolean.TRUE);
-        user.setPassword(initPwd);
-        sysUserService.create(user);
+        BizUtils.checkUserUniqueField(user, null, sysUserService, assertionChecker);
+
+        UserAccount account = registerUserUseCase.register(RegisterUserUseCase.RegisterUserCommand.builder()
+                .creationSource(RegisterUserUseCase.CreationSource.ADMIN_CREATE)
+                .username(StrUtil.isNotEmpty(params.getUsername())
+                        ? params.getUsername() : params.getPhone())
+                .password(initPwd)
+                .userType(UserTypeEnum.ADMIN)
+                .phone(params.getPhone())
+                .email(params.getEmail())
+                .nickname(params.getNickname())
+                .avatar(params.getAvatar())
+                .createdBy(SecurityAuthContext.getUser().getId())
+                .build());
 
         ResetPwdVO result = new ResetPwdVO();
         result.setRandom(initPwd);
-        result.setId(user.getId());
+        result.setId(account.getId());
         return result;
     }
 
@@ -238,7 +244,14 @@ public class BizUserServiceImpl implements BizUserService {
         // 取消关联部门
         tenantUserDeptPrivateService.setDepartments(id, null);
 
-        sysUserService.delete(id);
+        InUser operator = SecurityAuthContext.getUser();
+        deleteAccountUseCase.deleteAccount(DeleteAccountUseCase.DeleteAccountCommand.builder()
+                .userId(id)
+                .userType(UserTypeEnum.ADMIN)
+                .source(EventSource.PMS)
+                .operatorId(operator.getId())
+                .operatorName(operator.getUsername())
+                .build());
     }
 
     @Override

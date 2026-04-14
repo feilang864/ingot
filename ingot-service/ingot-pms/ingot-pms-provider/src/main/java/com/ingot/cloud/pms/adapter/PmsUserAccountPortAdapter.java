@@ -96,6 +96,12 @@ public class PmsUserAccountPortAdapter implements UserAccountPort {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    public void delete(Long userId, UserTypeEnum userType) {
+        sysUserMapper.deleteById(userId);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
     public boolean updateWithVersion(UserAccount account, Long expectedVersion) {
         SysUser sysUser = toEntity(account);
         LambdaUpdateWrapper<SysUser> update = Wrappers.lambdaUpdate();

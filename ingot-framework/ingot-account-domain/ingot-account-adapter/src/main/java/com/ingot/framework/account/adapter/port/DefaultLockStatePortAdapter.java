@@ -113,6 +113,12 @@ public class DefaultLockStatePortAdapter implements LockStatePort {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteByUser(Long userId, UserTypeEnum userType) {
+        lockStateMapper.delete(buildUserQuery(userId, userType));
+    }
+
+    @Override
     public List<LockState> findExpiredLocksByPage(LocalDateTime now, Long afterId, int pageSize) {
         return lockStateMapper.findExpiredLocksByPage(now, afterId, pageSize).stream()
                 .map(this::toModel)
